@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xsi:noNamespaceSchemaLocation="urn:magento:framework/Module/etc/config.xsd">
+    <default>
+        <carriers>
+            <nboxshipping>
+                <active>1</active>
+                <sallowspecific>0</sallowspecific>
+                <model>NBOX\Shipping\Model\Carrier\Nboxshipping</model>
+                <name>NBOX</name>
+                <handling_type>F</handling_type>
+                <title>NBOX Shipping</title>
+                <type>I</type>
+                <specificerrmsg>This shipping method is not available right now.</specificerrmsg>
+            </nboxshipping>
+        </carriers>
+    </default>
+</config>
