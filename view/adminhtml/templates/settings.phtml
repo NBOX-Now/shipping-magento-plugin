@@ -1,0 +1,17 @@
+<div class="admin__page-title">
+
+</div>
+
+<form action="<?php echo $block->getUrl('nbox_shipping/settings/save'); ?>" method="post">
+    <div>
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" value="<?php echo $block->getUsername(); ?>" />
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" />
+    </div>
+    <div>
+        <button type="submit">Save</button>
+    </div>
+</form>
