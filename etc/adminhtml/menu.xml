@@ -6,14 +6,16 @@
              title="NBOX Shipping"
              module="NBOX_Shipping"
              sortOrder="10"
-             resource="NBOX_Shipping::config"/>
+             action="nbox_shipping/settings/index"
+             resource="NBOX_Shipping::settings"/>
+             <!-- resource="NBOX_Shipping::config"/> -->
 
-        <add id="NBOX_Shipping::settings"
+        <!-- <add id="NBOX_Shipping::settings"
              title="Settings"
              module="NBOX_Shipping"
              sortOrder="20"
              parent="NBOX_Shipping::main"
              action="nbox_shipping/settings/index"
-             resource="NBOX_Shipping::settings"/>
+             resource="NBOX_Shipping::settings"/> -->
     </menu>
 </config>

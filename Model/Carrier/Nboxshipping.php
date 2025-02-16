@@ -15,6 +15,7 @@ use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Catalog\Model\ProductRepository;
+use Magento\Catalog\Model\Product\Type;
 
  
 class Nboxshipping extends AbstractCarrier implements CarrierInterface {
@@ -63,42 +64,31 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
 
         $items = $request->getAllItems();
         //
-        $this->_logger->debug("converted: " . json_encode($items[0]));
-
-
-        $dimensions = [];
-        
+        $totalVolume = 0;
+        // Prepare volume
         foreach ($items as $item) {
             $product = $this->productRepository->getById($item->getProduct()->getId());
-            $this->_logger->debug("ITEM: " . json_encode($product->getCustomAttribute('length')->getValue()));
-            
-        //     if ($item->getProductType() == \Magento\Catalog\Model\Product\Type::TYPE_SIMPLE) {
+            if ($item->getProductType() == Type::TYPE_SIMPLE) {
+                $length = $product->getCustomAttribute('length') ? $product->getCustomAttribute('length')->getValue() : 0;
+                $width = $product->getCustomAttribute('width') ? $product->getCustomAttribute('width')->getValue() : 0;
+                $height = $product->getCustomAttribute('height') ? $product->getCustomAttribute('height')->getValue() : 0;
         
-                
-        //         $length = $product->getCustomAttribute('length') ? $product->getCustomAttribute('length')->getValue() : 0;
-        //         $width = $product->getCustomAttribute('width') ? $product->getCustomAttribute('width')->getValue() : 0;
-        //         $height = $product->getCustomAttribute('height') ? $product->getCustomAttribute('height')->getValue() : 0;
-        //         $weight = $product->getWeight();
-        
-        //         $dimensions[] = [
-        //             'length' => $length,
-        //             'width' => $width,
-        //             'height' => $height,
-        //             'weight' => $weight
-        //         ];
-        //     }
+                $dimensions[] = [
+                    'length' => $length,
+                    'width' => $width,
+                    'height' => $height
+                ];
+                $totalVolume += ($length * $width * $height);
+            }
         }
-
-
+        
+        $this->_logger->debug("Volume: " . json_encode($totalVolume));
+        
         // Prepare weight
         $weight = $request->getPackageWeight();
         $weightUnit = $this->_scopeConfig->getValue('general/locale/weight_unit',ScopeInterface::SCOPE_STORE);
-        //
-        
-        //
         $weight = $this->convertToKg($weight, $weightUnit);
-
-        $this->_logger->debug("converted: " . $weight);
+        $this->_logger->debug("Converted Weight: " . $weight);
 
         try{
             $apiUrl = 'https://nbox.now/api/rates'; 
@@ -119,11 +109,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
                     "countryCode" => $request->getDestCountryId(),
                 ],
                 'weight' => $weight,
-                'dimensions' => [
-                    'length' => 10,
-                    'width' => 10,
-                    'height' => 10
-                ],
+                'volume' => $totalVolume,
             ];
 
             
@@ -141,8 +127,6 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
 
             $decoded = json_decode($response, true);
 
-            $this->_logger->debug('API Response: ' . $decoded['status']);
-            
             $result = $this->rateResultFactory->create();
 
             foreach($decoded['rates'] as $item){
@@ -154,8 +138,6 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
                 $method->setMethod($item["service_code"]);
                 $method->setMethodTitle($item["service_name"] . " " . $item["description"]);
         
-                /*you can fetch shipping price from different sources over some APIs, we used price from config.xml - xml node price*/
-                
                 $method->setPrice($this->getFinalPriceWithHandlingFee($item["total_price"]));
                 $method->setCost($item["total_price"]);
         
@@ -166,19 +148,6 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
         } catch (\Exception $e) {
             $this->_logger->debug('NBOX Rates Error: ' . $e->getMessage());
         }
-    }
-
-    public function getDimensionUnit(){
-        $locale = $this->_scopeConfig->getValue('general/locale/code', ScopeInterface::SCOPE_STORE);
-        $this->_logger->debug('Locale: ' . $locale);
-
-        // Countries using metric (cm)
-        $metricCountries = ['GB', 'DE', 'FR', 'QA', 'AE', 'IN']; // Add more as needed
-
-        // Extract country code
-        $countryCode = strtoupper(substr($locale, -2));
-
-        return in_array($countryCode, $metricCountries) ? 'cm' : 'in';
     }
 
     private static $weightToKg = [
@@ -213,20 +182,5 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
             return $value * self::$weightToKg[$unit];
         }
         throw new Exception("Unsupported weight unit: $unit");
-    }
-
-    /**
-     * Convert length to centimeters
-     * @param float $value - length value
-     * @param string $unit - length unit (cm, m, mm, in, ft, yd)
-     * @return float - converted value in cm
-     */
-    public static function convertToCm($value, $unit)
-    {
-        $unit = strtolower($unit);
-        if (isset(self::$lengthToCm[$unit])) {
-            return $value * self::$lengthToCm[$unit];
-        }
-        throw new Exception("Unsupported length unit: $unit");
     }
 }
