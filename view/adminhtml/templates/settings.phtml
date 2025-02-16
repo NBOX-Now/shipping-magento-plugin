@@ -1,17 +1,10 @@
-<div class="admin__page-title">
+<form action="<?= $block->getUrl('nbox_shipping/settings/login') ?>" method="post">
+    <input type="hidden" name="form_key" value="<?= $block->getFormKey() ?>" />
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
 
-</div>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
 
-<form action="<?php echo $block->getUrl('nbox_shipping/settings/save'); ?>" method="post">
-    <div>
-        <label for="username">Username:</label>
-        <input type="text" name="username" id="username" value="<?php echo $block->getUsername(); ?>" />
-    </div>
-    <div>
-        <label for="password">Password:</label>
-        <input type="password" name="password" id="password" />
-    </div>
-    <div>
-        <button type="submit">Save</button>
-    </div>
+    <button type="submit">Login</button>
 </form>
