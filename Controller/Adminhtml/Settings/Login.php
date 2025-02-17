@@ -5,7 +5,6 @@ namespace NBOX\Shipping\Controller\Adminhtml\Settings;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\Result\RedirectFactory;
-use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -16,11 +15,12 @@ use Magento\Store\Model\StoreManagerInterface;
 //
 use Nbox\Shipping\Helper\StoreSource;
 use Nbox\Shipping\Helper\NboxApi;
+use Nbox\Shipping\Helper\ConfigHelper;
 
 class Login extends Action implements HttpPostActionInterface
 {
    protected $resultRedirectFactory;
-   protected $configWriter;
+   protected $configHelper;
    protected $messageManager;
    protected $request;
    protected $session;
@@ -30,7 +30,7 @@ class Login extends Action implements HttpPostActionInterface
    public function __construct(
       Context $context,
       RedirectFactory $resultRedirectFactory,
-      WriterInterface $configWriter,
+      ConfigHelper $configHelper,
       ManagerInterface $messageManager,
       RequestInterface $request,
       StoreSource $storeSource,
@@ -39,7 +39,7 @@ class Login extends Action implements HttpPostActionInterface
    ) {
       parent::__construct($context);
       $this->resultRedirectFactory = $resultRedirectFactory;
-      $this->configWriter = $configWriter;
+      $this->configHelper = $configHelper;
       $this->messageManager = $messageManager;
       $this->request = $request;
       $this->session = $session;
@@ -89,7 +89,7 @@ class Login extends Action implements HttpPostActionInterface
       //
       if ($response['status'] === 'success') {
          // Store login token in Magento config
-         $this->configWriter->save(NboxApi::TOKEN_PATH, $response['token']);
+         $this->configHelper->saveApiToken($response['token']);
          $this->messageManager->addSuccessMessage(__('Login successful.'));
       } else {
          $this->messageManager->addErrorMessage(__('Login failed. Please check your credentials.'));
