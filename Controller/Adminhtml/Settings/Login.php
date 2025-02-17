@@ -15,6 +15,7 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Store\Model\StoreManagerInterface;
 //
 use Nbox\Shipping\Helper\StoreSource;
+use Nbox\Shipping\Helper\NboxApi;
 
 class Login extends Action implements HttpPostActionInterface
 {
@@ -35,7 +36,6 @@ class Login extends Action implements HttpPostActionInterface
       StoreSource $storeSource,
       SessionManagerInterface $session,
       ScopeConfigInterface $scopeConfig,
-      
    ) {
       parent::__construct($context);
       $this->resultRedirectFactory = $resultRedirectFactory;
@@ -45,7 +45,6 @@ class Login extends Action implements HttpPostActionInterface
       $this->session = $session;
       $this->scopeConfig = $scopeConfig;
       $this->storeSource = $storeSource;
-      
    }
 
    public function execute()
@@ -81,38 +80,21 @@ class Login extends Action implements HttpPostActionInterface
                            "state"        => $store["state"],
                            "zip"          => $store["zip"],
                            "phone"        => $store['phone']
-         ]]
+                        ]]
       ];
       echo "<pre>"; var_dump($requestData); echo "</pre>";
 
       // Call your API for authentication
-      $apiUrl = 'http://localhost:5173/api/login';
-      $response = $this->makeApiRequest($apiUrl, $username, $password);
+      $response = NboxApi::login($requestData);
       //
-      echo "<pre>"; var_dump($response); echo "</pre>";
-
       if ($response['status'] === 'success') {
          // Store login token in Magento config
-         $this->configWriter->save('nbox_shipping/general/api_token', $response['token']);
+         $this->configWriter->save(NboxApi::TOKEN_PATH, $response['token']);
          $this->messageManager->addSuccessMessage(__('Login successful.'));
       } else {
          $this->messageManager->addErrorMessage(__('Login failed. Please check your credentials.'));
       }
 
       return $this->resultRedirectFactory->create()->setPath('nbox_shipping/settings/index');
-   }
-
-   private function makeApiRequest($url, $username, $password)
-   {
-      $ch = curl_init($url);
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($ch, CURLOPT_POST, true);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['username' => $username, 'password' => $password]));
-      curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-
-      $response = curl_exec($ch);
-      curl_close($ch);
-
-      return json_decode($response, true);
    }
 }

@@ -18,6 +18,7 @@ use Magento\Catalog\Model\ProductRepository;
 use Magento\Catalog\Model\Product\Type;
 //
 use Nbox\Shipping\Helper\ProductSource;
+use Nbox\Shipping\Helper\NboxApi;
  
 class Nboxshipping extends AbstractCarrier implements CarrierInterface {
  
@@ -102,65 +103,40 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
         $weight = $this->convertToKg($weight, $weightUnit);
         $this->_logger->debug("tapos: " . $weight);
         
-        try{
-            $apiUrl = 'https://nbox.now/api/rates'; 
-            // $apiUrl = 'https://vu41fq-ip-37-186-50-132.tunnelmole.net/api/rates'; 
-            
-            $requestData = [
-                'origin' => [
-                    "address" => $this->_scopeConfig->getValue('shipping/origin/region_id', ScopeInterface::SCOPE_STORE),
-                    "city" => $this->_scopeConfig->getValue('shipping/origin/city', ScopeInterface::SCOPE_STORE),
-                    "zip" => $this->_scopeConfig->getValue('shipping/origin/postcode', ScopeInterface::SCOPE_STORE),
-                    "countryCode" => $this->_scopeConfig->getValue('shipping/origin/country_id', ScopeInterface::SCOPE_STORE),
-                    
-                ],
-                'destination' => [
-                    "address" => $request->getDestStreet(),
-                    "city" => $request->getDestCity(),
-                    "zip" => $request->getDestPostcode(),
-                    "countryCode" => $request->getDestCountryId(),
-                ],
-                'weight' => $weight,
-                'volume' => $totalVolume,
-            ];
+        $requestData = [
+            'origin' => [
+                "address" => $this->_scopeConfig->getValue('shipping/origin/region_id', ScopeInterface::SCOPE_STORE),
+                "city" => $this->_scopeConfig->getValue('shipping/origin/city', ScopeInterface::SCOPE_STORE),
+                "zip" => $this->_scopeConfig->getValue('shipping/origin/postcode', ScopeInterface::SCOPE_STORE),
+                "countryCode" => $this->_scopeConfig->getValue('shipping/origin/country_id', ScopeInterface::SCOPE_STORE),
+                
+            ],
+            'destination' => [
+                "address" => $request->getDestStreet(),
+                "city" => $request->getDestCity(),
+                "zip" => $request->getDestPostcode(),
+                "countryCode" => $request->getDestCountryId(),
+            ],
+            'weight' => $weight,
+            'volume' => $totalVolume,
+        ];
 
-            $this->_logger->debug("Request Data: " . json_encode($requestData));
-            
-            $ch = curl_init($apiUrl);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                "Content-Type" => "application/json",
-                'x-nbox-shop-domain' => "magento-website"//get_option("nbox_now_account_shop")
-            ]);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($requestData));
+        $response = NboxApi::getRates($requestData);
+        $result = $this->rateResultFactory->create();
 
-            $response = curl_exec($ch);
-            curl_close($ch);
-            $this->_logger->debug("Request Data: " . $response);
-            $decoded = json_decode($response, true);
-
-            $result = $this->rateResultFactory->create();
-
-            foreach($decoded['rates'] as $item){
-                $method = $this->rateMethodFactory->create();
-        
-                $method->setCarrier($this->_code);
-                $method->setCarrierTitle($item["service_code"]);
-        
-                $method->setMethod($item["service_code"]);
-                $method->setMethodTitle($item["service_name"] . " " . $item["description"]);
-        
-                $method->setPrice($this->getFinalPriceWithHandlingFee($item["total_price"]));
-                $method->setCost($item["total_price"]);
-        
-                $result->append($method);
-                //
-            }
-            return $result;
-        } catch (\Exception $e) {
-            $this->_logger->debug('NBOX Rates Error: ' . $e->getMessage());
+        foreach($response['rates'] as $item){
+            $method = $this->rateMethodFactory->create();
+            // 
+            $method->setCarrier($this->_code);
+            $method->setCarrierTitle($item["service_code"]);
+            $method->setMethod($item["service_code"]);
+            $method->setMethodTitle($item["service_name"] . " " . $item["description"]);
+            $method->setPrice($this->getFinalPriceWithHandlingFee($item["total_price"]));
+            $method->setCost($item["total_price"]);
+            // 
+            $result->append($method);
         }
+        return $result;
     }
 
     private static $weightToKg = [

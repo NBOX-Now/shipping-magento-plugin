@@ -24,6 +24,7 @@ class Index extends Action
         $resultPage = $this->resultPageFactory->create();
         $resultPage->setActiveMenu('NBOX_Shipping::settings');
         $resultPage->getConfig()->getTitle()->prepend(__('NBOX Shipping Settings'));
+        
         return $resultPage;
     }
 }
