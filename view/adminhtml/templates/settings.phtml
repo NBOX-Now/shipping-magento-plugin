@@ -1,9 +1,8 @@
 <?php
-
-    var_dump($block->getData('isLoggedIn'));
-
+    echo "<pre>"; var_dump($block->getData('isLoggedIn')); echo "</pre>";
+    //
+    echo "<pre>"; var_dump(count($block->getProducts())); echo "</pre>";
 ?>
-
 <form action="<?= $block->getUrl('nbox_shipping/settings/login') ?>" method="post">
     <input type="hidden" name="form_key" value="<?= $block->getFormKey() ?>" />
     <label for="username">Username:</label>
