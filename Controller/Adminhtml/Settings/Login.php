@@ -13,9 +13,8 @@ use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 //
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Directory\Model\CountryFactory;
-use Magento\Directory\Model\RegionFactory;
-use Magento\Framework\UrlInterface;
+//
+use Nbox\Shipping\Helper\StoreSource;
 
 class Login extends Action implements HttpPostActionInterface
 {
@@ -25,21 +24,18 @@ class Login extends Action implements HttpPostActionInterface
    protected $request;
    protected $session;
    protected $scopeConfig;
-   protected $storeManager;
-   protected $countryFactory;
-   protected $regionFactory;
-
+   protected $storeSource;
+   
    public function __construct(
       Context $context,
       RedirectFactory $resultRedirectFactory,
       WriterInterface $configWriter,
       ManagerInterface $messageManager,
       RequestInterface $request,
+      StoreSource $storeSource,
       SessionManagerInterface $session,
       ScopeConfigInterface $scopeConfig,
-      StoreManagerInterface $storeManager,
-      CountryFactory $countryFactory,
-      RegionFactory $regionFactory
+      
    ) {
       parent::__construct($context);
       $this->resultRedirectFactory = $resultRedirectFactory;
@@ -48,9 +44,8 @@ class Login extends Action implements HttpPostActionInterface
       $this->request = $request;
       $this->session = $session;
       $this->scopeConfig = $scopeConfig;
-      $this->storeManager = $storeManager;
-      $this->countryFactory = $countryFactory;
-      $this->regionFactory = $regionFactory;
+      $this->storeSource = $storeSource;
+      
    }
 
    public function execute()
@@ -59,32 +54,42 @@ class Login extends Action implements HttpPostActionInterface
       $password = $this->request->getParam('password');
 
       // Get shop details from Magento setup
-      $stores = $this->storeManager->getStores();
-
-      foreach($stores as $store){
-         echo "<pre>"; var_dump($store->getId()); echo "</pre>";
-         echo "<pre>"; var_dump($store->getName()); echo "</pre>";
-         echo "<pre>"; var_dump($store->getBaseUrl()); echo "</pre>";
-         echo "<pre>"; var_dump($store->getCode()); echo "</pre>";
-         echo "<pre>"; var_dump($store->getBaseUrl(UrlInterface::URL_TYPE_LINK)); echo "</pre>";
-         $storeUrl = $store->getBaseUrl();
-
-        // Parse the URL and get only the domain (host)
-        $parsedUrl = parse_url($storeUrl);
-        $domain = isset($parsedUrl['host']) ? $parsedUrl['host'] : 'No domain found';
-        echo "<pre>"; var_dump($domain); echo "</pre>";
-      }
+      $stores = $this->storeSource->getStoreShippingOrigins();
+      $store = $stores[0];
       
-      exit;
-
       if (!$username || !$password) {
          $this->messageManager->addErrorMessage(__('Invalid credentials.'));
          return $this->resultRedirectFactory->create()->setPath('nbox_shipping/settings/index');
       }
+      //
+      
+
+      $requestData = [
+         "email"     => $username,
+         "password"  => $password,
+         "name"      => $store["store_name"],
+         "shopId"    => $store["store_domain"],
+         "url"       => $store["store_url"],
+         "platform"  => "magento",
+         "locations" => [[
+                           "id"           => $store["store_code"],
+                           "name"         => $store["store_name"],
+                           "address"      => $store["address"],
+                           "city"         => $store["city"],
+                           "countyCode"   => $store["country_code"],
+                           "country"      => $store["country_name"],
+                           "state"        => $store["state"],
+                           "zip"          => $store["zip"],
+                           "phone"        => $store['phone']
+         ]]
+      ];
+      echo "<pre>"; var_dump($requestData); echo "</pre>";
 
       // Call your API for authentication
       $apiUrl = 'http://localhost:5173/api/login';
       $response = $this->makeApiRequest($apiUrl, $username, $password);
+      //
+      echo "<pre>"; var_dump($response); echo "</pre>";
 
       if ($response['status'] === 'success') {
          // Store login token in Magento config

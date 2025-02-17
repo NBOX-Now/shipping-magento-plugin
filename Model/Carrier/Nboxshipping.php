@@ -16,7 +16,8 @@ use Magento\Framework\HTTP\Client\Curl;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Catalog\Model\Product\Type;
-
+//
+use Nbox\Shipping\Helper\ProductSource;
  
 class Nboxshipping extends AbstractCarrier implements CarrierInterface {
  
@@ -27,10 +28,9 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
     protected $_logger;
     protected $_curl;
     protected $productRepository;
- 
     protected $rateResultFactory;
- 
     protected $rateMethodFactory;
+    protected $productSource;
  
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -40,13 +40,16 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
         MethodFactory $rateMethodFactory,
         ProductRepository $productRepository,
         Curl $curl,
+        ProductSource $productSource,
         array $data = []
     ){
         $this->rateResultFactory = $rateResultFactory;
         $this->rateMethodFactory = $rateMethodFactory;
         $this->productRepository = $productRepository;
         $this->_curl = $curl; 
+        $this->productSource = $productSource;
         parent::__construct($scopeConfig, $rateErrorFactory, $logger, $data);
+
     }
  
     public function getAllowedMethods(){
@@ -57,6 +60,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
         if (!$this->getConfigFlag('active')) {
             return false;
         }
+
         /**
          * Start custom script
          * Call NBOX Now Rates API here
@@ -64,10 +68,17 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
 
         $items = $request->getAllItems();
         //
+        $origin;
         $totalVolume = 0;
         // Prepare volume
         foreach ($items as $item) {
             $product = $this->productRepository->getById($item->getProduct()->getId());
+            $sku = $product->getSku(); 
+            
+            // Get sources dynamically
+            // $sourceLocation[$sku] = $sources;
+            $origin = $this->productSource->getProductSources($sku);
+            
             if ($item->getProductType() == Type::TYPE_SIMPLE) {
                 $length = $product->getCustomAttribute('length') ? $product->getCustomAttribute('length')->getValue() : 0;
                 $width = $product->getCustomAttribute('width') ? $product->getCustomAttribute('width')->getValue() : 0;
@@ -81,15 +92,16 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
                 $totalVolume += ($length * $width * $height);
             }
         }
-        
-        $this->_logger->debug("Volume: " . json_encode($totalVolume));
+        $this->_logger->debug("ORIGIN: " . $origin["name"]);
+        // $this->_logger->debug("ORIGIN: " . json_encode($origin));
         
         // Prepare weight
         $weight = $request->getPackageWeight();
         $weightUnit = $this->_scopeConfig->getValue('general/locale/weight_unit',ScopeInterface::SCOPE_STORE);
+        $this->_logger->debug("WEIGHT: " . $weightUnit);
         $weight = $this->convertToKg($weight, $weightUnit);
-        $this->_logger->debug("Converted Weight: " . $weight);
-
+        $this->_logger->debug("tapos: " . $weight);
+        
         try{
             $apiUrl = 'https://nbox.now/api/rates'; 
             // $apiUrl = 'https://vu41fq-ip-37-186-50-132.tunnelmole.net/api/rates'; 
@@ -112,6 +124,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
                 'volume' => $totalVolume,
             ];
 
+            $this->_logger->debug("Request Data: " . json_encode($requestData));
             
             $ch = curl_init($apiUrl);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -124,7 +137,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
 
             $response = curl_exec($ch);
             curl_close($ch);
-
+            $this->_logger->debug("Request Data: " . $response);
             $decoded = json_decode($response, true);
 
             $result = $this->rateResultFactory->create();
@@ -152,21 +165,12 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
 
     private static $weightToKg = [
         'kg'  => 1,         // Kilograms
+        'kgs'  => 1,         // Kilograms
         'g'   => 0.001,     // Grams
         'mg'  => 0.000001,  // Milligrams
         'lbs' => 0.453592,  // Pounds
         'oz'  => 0.0283495, // Ounces
         'ton' => 1000,      // Metric tons
-    ];
-
-    // Conversion factors to CM
-    private static $lengthToCm = [
-        'cm'  => 1,        // Centimeters
-        'm'   => 100,      // Meters
-        'mm'  => 0.1,      // Millimeters
-        'in'  => 2.54,     // Inches
-        'ft'  => 30.48,    // Feet
-        'yd'  => 91.44,    // Yards
     ];
 
     /**
