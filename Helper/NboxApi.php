@@ -8,7 +8,7 @@ use Psr\Log\LoggerInterface;
 class NboxApi 
 {
    // Define API Base URL
-   const BASE_URL = 'https://3elmly-ip-37-208-150-101.tunnelmole.net/api';
+   const BASE_URL = 'https://mbdjif-ip-37-186-50-132.tunnelmole.net/api';
    const RATES = '/rates';
    const LOGIN = '/login';
    const TOKEN_PATH = 'nbox_shipping/general/api_token';
