@@ -49,16 +49,52 @@ class ConfigHelper
     }
 
     /**
+     * Get API Token Password
+     */
+    public function getApiToken()
+    {
+        return $this->scopeConfig->getValue(self::XML_PATH_API_TOKEN, ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+    }
+    
+    public function deleteApiToken()
+    {
+        try {
+            $this->configInterface->deleteConfig(self::XML_PATH_API_TOKEN, ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0);
+            
+            $this->clearCache();
+            return ["status" => "success"];
+        } catch (\Exception $e) {
+            $this->logger->debug("Error on deleting token: " . $e->getMessage());
+            return ["status" => "failed", "message" => $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Save Plugin Activation Status
+     */
+    public function setPluginActive($isActive)
+    {
+        $this->configWriter->save(self::XML_PATH_PLUGIN_ACTIVE, $isActive ? '1' : '0', ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+    }
+    
+    /**
+     * Check if Plugin is Active
+     */
+    public function isPluginActive()
+    {
+        return (bool) $this->scopeConfig->getValue(self::XML_PATH_PLUGIN_ACTIVE, ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+    }
+    /**
      * Clear the necessary cache types
      */
     protected function clearCache()
     {
         // Get all cache types available from the cache type list
         $cacheTypes = $this->cacheTypeList->getTypes();
-
+    
         // Define valid cache types for clearing
         $validCacheTypes = ['config', 'block_html', 'full_page'];
-
+    
         // Loop over valid cache types and clean them
         foreach ($validCacheTypes as $type) {
             // Ensure the cache type exists before cleaning it
@@ -70,50 +106,12 @@ class ConfigHelper
                 }
             }
         }
-
+    
         // Clear all configuration-related cache tags
         try {
             $this->cacheManager->clean([Config::CACHE_TAG]);
         } catch (\Exception $e) {
             $this->logger->debug("Error clearing config cache: " . $e->getMessage());
         }
-    }
-
-
-
-    /**
-     * Get API Token Password
-     */
-    public function getApiToken()
-    {
-        $this->logger->debug("PLEASE LANG ". $this->scopeConfig->getValue(self::XML_PATH_API_TOKEN, ScopeConfigInterface::SCOPE_TYPE_DEFAULT));
-        return $this->scopeConfig->getValue(self::XML_PATH_API_TOKEN, ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
-    }
-
-    public function deleteApiToken()
-    {
-        try {
-            $this->configInterface->deleteConfig(self::XML_PATH_API_TOKEN, ScopeConfigInterface::SCOPE_TYPE_DEFAULT, $scopeId=0);
-            return ["status" => "success"];
-        } catch (\Exception $e) {
-            $this->logger->debug("Error on deleting token", $e->getMessage());
-            return ["status" => "failed", "message" => $e->getMessage()];
-        }
-    }
-
-    /**
-     * Save Plugin Activation Status
-     */
-    public function setPluginActive($isActive)
-    {
-        $this->configWriter->save(self::XML_PATH_PLUGIN_ACTIVE, $isActive ? '1' : '0', ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
-    }
-
-    /**
-     * Check if Plugin is Active
-     */
-    public function isPluginActive()
-    {
-        return (bool) $this->scopeConfig->getValue(self::XML_PATH_PLUGIN_ACTIVE, ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
     }
 }

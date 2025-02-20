@@ -49,27 +49,41 @@
                                 <a class="button" href="<?= $signUp ?>" target="_blank"><?= __('Sign up') ?></a>         
                             </div>
                         <?php }else{ ?>
+                            <form action="<?= $block->getUrl('nbox_shipping/settings/logout') ?>" method="POST">
+                                <input type="hidden" name="form_key" value="<?= $block->getFormKey() ?>" />
+                                <button type="submit"  class="button button-primary"><?= __("Logout") ?></button>
+                            </form>
                             <a href="<?= $dashboardUrl ?>" target="_blank"><?= __('View Dashboard') ?></a>
                         <?php } ?> 
                         <div id="login-control">
                             <div id="login-wrap" class="hide">
                                 <hr/>
                                 <form id="loginFormNbox"  action="<?= $block->getUrl('nbox_shipping/settings/login') ?>" method="post">
-                                    <input type="hidden" name="form_key" value="<?= $block->getFormKey() ?>" />
-                                    
-                                    <div class="form-container">
-                                        <div class="form-group">
-                                            <label for="username"><?= __('Email') ?></label>
-                                            <input type="text" id="username" name="username" class="form-control" placeholder="username/email" required>
+                                    <input type="hidden" class="admin__control-text" name="form_key" value="<?= $block->getFormKey() ?>" />
+
+                                    <div class="admin__fieldset">
+                                        <div class="admin__field admin__field-left">
+                                            <label for="username" class="admin__field-label">
+                                                <span><?= __('Email') ?></span>
+                                            </label>
+                                            <div class="admin__field-control">
+                                                <input type="text" id="username" name="username" class="admin__control-text" required>
+                                            </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="password"><?= __('Password') ?></label>
-                                            <input type="password" id="password" name="password" class="form-control" required>
+
+                                        <div class="admin__field admin__field-left">
+                                            <label for="password" class="admin__field-label">
+                                                <span><?= __('Password') ?></span>
+                                            </label>
+                                            <div class="admin__field-control">
+                                                <input type="password" id="password" name="password" class="admin__control-text" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="admin__actions">
+                                            <button type="submit" class="action-primary"><?= __("Login") ?></button>
                                         </div>
                                     </div>
-                                    <p id="login-message" class="text-danger"></p>
-                                    <button type="submit"  class="button button-primary"><?= __("Login") ?></button>
-                                    <a class="button" href="<?= $signUp ?>" target="_blank"><?= __("Sign up")?></a>         
                                 </form>
                             </div>
                         </div>
@@ -97,7 +111,6 @@
                 <div id="product-list" class="product-list hide">
                     <?php foreach($products_incomplete as $product){ ?>
                     <div class="product-item">
-                        <!-- <?php echo "<pre>"; var_dump($product); echo "</pre>"; ?> -->
                         <div class="thumb-wrap">
                             <a href="<?= $product['url'] ?>">
                                 <img src="<?= $product['image_url'] ?>"alt="<?= $product['name']?>">

@@ -43,9 +43,9 @@
   .form-group {
     padding: 10px 0;
 
-    label {
+    /* label {
       font-size: 0.9rem;
-    }
+    } */
 
     .form-control {
       input {
@@ -160,6 +160,13 @@
 }
 .hide {
   display: none;
+}
+
+.admin__field-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  max-width: 300px; /* Adjust based on your preference */
 }
 @media (max-width: 655px) {
   .nboxnow-shipping-method {
