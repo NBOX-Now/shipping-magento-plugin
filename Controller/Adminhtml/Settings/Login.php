@@ -92,7 +92,8 @@ class Login extends Action implements HttpPostActionInterface
          $this->configHelper->saveApiToken($response['token']);
          $this->messageManager->addSuccessMessage(__('Login successful.'));
       } else {
-         $this->messageManager->addErrorMessage(__('Login failed. Please check your credentials.'));
+         $message = isset($response['message']) ? $response['message'] : __("Login failed. Please check your credentials.");
+         $this->messageManager->addErrorMessage($message);
       }
 
       return $this->resultRedirectFactory->create()->setPath('nbox_shipping/settings/index');

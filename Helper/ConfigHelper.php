@@ -3,6 +3,10 @@ namespace Nbox\Shipping\Helper;
 
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\ConfigResource\ConfigInterface;
+use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\App\Cache\Manager;
+use Magento\Framework\App\Cache\Type\Config;
 
 use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
@@ -14,26 +18,68 @@ class ConfigHelper
 
     protected $configWriter;
     protected $scopeConfig;
+    protected $configInterface;
     protected $logger;
+    protected $cacheTypeList;
+    protected $cacheManager;
 
     public function __construct(
         WriterInterface $configWriter,
         ScopeConfigInterface $scopeConfig,
-        LoggerInterface $logger
+        ConfigInterface $configInterface,
+        TypeListInterface $cacheTypeList,
+        Manager $cacheManager,
+        LoggerInterface $logger,
     ) {
         $this->configWriter = $configWriter;
         $this->scopeConfig = $scopeConfig;
+        $this->configInterface = $configInterface;
+        $this->cacheTypeList = $cacheTypeList;
+        $this->cacheManager = $cacheManager;
         $this->logger = $logger;
     }
 
-    /**
-     * Save API Token Password
-     */
     public function saveApiToken($token)
     {
-        
+        // Save the API token to config
         $this->configWriter->save(self::XML_PATH_API_TOKEN, $token, ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+        
+        // Clear Magento cache
+        $this->clearCache();
     }
+
+    /**
+     * Clear the necessary cache types
+     */
+    protected function clearCache()
+    {
+        // Get all cache types available from the cache type list
+        $cacheTypes = $this->cacheTypeList->getTypes();
+
+        // Define valid cache types for clearing
+        $validCacheTypes = ['config', 'block_html', 'full_page'];
+
+        // Loop over valid cache types and clean them
+        foreach ($validCacheTypes as $type) {
+            // Ensure the cache type exists before cleaning it
+            if (isset($cacheTypes[$type])) {
+                try {
+                    $this->cacheTypeList->cleanType($type);
+                } catch (\Exception $e) {
+                    $this->logger->debug("Error cleaning cache for type {$type}: " . $e->getMessage());
+                }
+            }
+        }
+
+        // Clear all configuration-related cache tags
+        try {
+            $this->cacheManager->clean([Config::CACHE_TAG]);
+        } catch (\Exception $e) {
+            $this->logger->debug("Error clearing config cache: " . $e->getMessage());
+        }
+    }
+
+
 
     /**
      * Get API Token Password
@@ -42,6 +88,17 @@ class ConfigHelper
     {
         $this->logger->debug("PLEASE LANG ". $this->scopeConfig->getValue(self::XML_PATH_API_TOKEN, ScopeConfigInterface::SCOPE_TYPE_DEFAULT));
         return $this->scopeConfig->getValue(self::XML_PATH_API_TOKEN, ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+    }
+
+    public function deleteApiToken()
+    {
+        try {
+            $this->configInterface->deleteConfig(self::XML_PATH_API_TOKEN, ScopeConfigInterface::SCOPE_TYPE_DEFAULT, $scopeId=0);
+            return ["status" => "success"];
+        } catch (\Exception $e) {
+            $this->logger->debug("Error on deleting token", $e->getMessage());
+            return ["status" => "failed", "message" => $e->getMessage()];
+        }
     }
 
     /**

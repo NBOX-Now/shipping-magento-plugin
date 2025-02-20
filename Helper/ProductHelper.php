@@ -80,9 +80,6 @@ class ProductHelper extends AbstractHelper
       $searchCriteria = $this->searchCriteriaBuilder->create();
    
       // Fetch products
-      $products = $this->productRepository->getList($searchCriteria)->getItems();
-   
-      return $products;
+      return $this->productRepository->getList($searchCriteria)->getItems();
    }
-   
 }

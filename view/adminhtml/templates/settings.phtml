@@ -1,125 +1,147 @@
 <?php
-    $isLogged = $block->getData('isLoggedIn');
-    $products_incomplete = $block->getProducts();
+    $isLogged = $block->getData('isLogged');
+    $supportEmail = $block->getData('supportEmail');
+    $signUp = $block->getData('signUp');
+    $dashboardUrl = $block->getData('dashboardUrl');
+    
+    $products_incomplete = $block->getProducts('products');
+    $stepsCompleted = $block->getStepsCompleted('stepsCompleted');
+
     $isActive = false;
+    
 ?>
 <div class="nboxnow-shipping-method">
-    
     <div class="setup">
-    <div class="callout">
-        <div class="image-wrap">
-            <div id="image-logo"></div>
-            
-        </div>
-        <div class="content-wrap">
-            <h2 class="title">About</h2>
-            <p class="body">Transform your store’s shipping experience with Nbox Logistics! Our app seamlessly integrates with your account to provide fast, secure, and reliable delivery solutions—ensuring your customers receive their orders on time, every time. Elevate your business with a delivery service you and your customers can count on!", 'nboxnow-shipping-method</p>
-            <div class="btn-wrap">
-                <a class="button button-primary" href=<?php echo "mailto: l.delacruz@nbox.qa"?>>Contact support</a>
+        <div class="callout">
+            <div class="image-wrap">
+                <div id="image-logo"></div>
             </div>
-        </div>
-    </div>
-    <div class="guide">
-        <div class="heading px-1">
-            <h2>Setup guide</h2>
-            <p>Follow this one-time set up guide to use NBOX Now shipment service</p>
-        </div>
-        <div class="step">
-            <div class="title px-1">
-                <h2>NBOX Now account</h2>
-            </div>
-            <div class="body">
-                <div class="status">
-                <input type="checkbox" <?php echo $isLogged ? "checked" : "" ?> readonly="true" disabled="true">
+            <div class="content-wrap">
+                <h2 class="title"><?= __('About') ?></h2>
+                <p class="body"><?= __("Transform your store’s shipping experience with Nbox Logistics! Our app seamlessly integrates with your account to provide fast, secure, and reliable delivery solutions—ensuring your customers receive their orders on time, every time. Elevate your business with a delivery service you and your customers can count on!") ?></p>
+                <div class="btn-wrap">
+                    <a class="button button-primary" href=<?php echo "mailto:$supportEmail" ?>><?= __('Contact support') ?></a>
                 </div>
-                <div class="inner">
-                <h3>Login NBOX Now</h3>
-                <p>Login on your account with us</p>
-                <?php if(!$isLogged) { ?>
+            </div>
+        </div>
+        <div class="guide">
+            <div class="heading px-1">
+                <h2><?= __('Setup guide')  ?></h2>
+                <p><?= __('Follow this one-time set up guide to use NBOX Now shipment service.') ?></p>
+                <div class="completion <?= $stepsCompleted >= 3 ? "success" : "warning" ?>">
+                    <span><?= $stepsCompleted ?></span><span> / 3 <?= __('completed')  ?></span>
+                </div>
+            </div>
+            <div class="step">
+                <div class="title px-1">
+                    <h2><?= __('NBOX Now account')  ?></h2>
+                </div>
+                <div class="body">
+                    <div class="status">
+                        <input type="checkbox" <?php echo $isLogged ? "checked" : "" ?> readonly="true" disabled="true">
+                    </div>
+                    <div class="inner">
+                        <h3><?= __('Login NBOX Now')  ?></h3>
+                        <p><?= __('Login on your account with us') ?></p>
+                        <?php if(!$isLogged) { ?>
+                            <div id="login-control">
+                                <button id="showLogin" class="button button-primary"><?= __('Login') ?></button>
+                                <a class="button" href="<?= $signUp ?>" target="_blank"><?= __('Sign up') ?></a>         
+                            </div>
+                        <?php }else{ ?>
+                            <a href="<?= $dashboardUrl ?>" target="_blank"><?= __('View Dashboard') ?></a>
+                        <?php } ?> 
                         <div id="login-control">
-                            <form action="<?= $block->getUrl('nbox_shipping/settings/login') ?>" method="post">
-                                <input type="hidden" name="form_key" value="<?= $block->getFormKey() ?>" />
-                                <label for="username">Username:</label>
-                                <input type="text" id="username" name="username" required>
-                                
-                                <label for="password">Password:</label>
-                                <input type="password" id="password" name="password" required>
-                                
-                                <button type="submit">Login</button>
-                                <a class="button" href="https://nbox.now" target="_blank">Sign up</a>
-                            </form>
+                            <div id="login-wrap" class="hide">
+                                <hr/>
+                                <form id="loginFormNbox"  action="<?= $block->getUrl('nbox_shipping/settings/login') ?>" method="post">
+                                    <input type="hidden" name="form_key" value="<?= $block->getFormKey() ?>" />
+                                    
+                                    <div class="form-container">
+                                        <div class="form-group">
+                                            <label for="username"><?= __('Email') ?></label>
+                                            <input type="text" id="username" name="username" class="form-control" placeholder="username/email" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="password"><?= __('Password') ?></label>
+                                            <input type="password" id="password" name="password" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <p id="login-message" class="text-danger"></p>
+                                    <button type="submit"  class="button button-primary"><?= __("Login") ?></button>
+                                    <a class="button" href="<?= $signUp ?>" target="_blank"><?= __("Sign up")?></a>         
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                <?php }else{ ?>
-                    <a href="https://nbox.now" target="_blank">View Dashboard</a>
-                <?php } ?> 
+                </div>
+            </div>
+            <div class="step">
+                <div class="title px-1">
+                    <h2><?= __('Scan product dimensions') ?></h2>
+                </div>
+                <div class="body">
+                    <div class="status">
+                        <input type="checkbox" <?= (count($products_incomplete) < 1) ? "checked" : "" ?> readonly="true" disabled="true">
+                    </div>
+                    <div class="inner">
+                        <h3><?= __('Get accurate shipping with product details' )?></h3>
+                        <?php if(count($products_incomplete) > 0) { ?>
+                            <p class="text-danger"><?= count($products_incomplete) . " " . __("product needs attention") ?></p>
+                            <button id="productView" type="button" class="button button-primary" data-toggle="show"><?= __('View products') ?></button>
+                        <?php } else { ?>
+                            <p><?= __("Great news! All your products now include weight and dimensions, providing precise shipping rates for a smoother checkout experience") ?></p>
+                        <?php } ?>
+                    </div>
+                </div>
+                <div id="product-list" class="product-list hide">
+                    <?php foreach($products_incomplete as $product){ ?>
+                    <div class="product-item">
+                        <!-- <?php echo "<pre>"; var_dump($product); echo "</pre>"; ?> -->
+                        <div class="thumb-wrap">
+                            <a href="<?= $product['url'] ?>">
+                                <img src="<?= $product['image_url'] ?>"alt="<?= $product['name']?>">
+                            </a>
+                        </div>
+                        <div class="description">
+                            <a href="<?= $product['url'] ?>"><span class="label"><?= $product['name'] ?></span></a>
+                            <p class="">
+                                <span><?= __('Missing info:') ?></span> 
+                                <?php if(!$product['has_weight']) { ?>
+                                    <span><?= __('Weight') ?></span>
+                                <?php } ?>
+                                <?php if(!$product["has_dimensions"]) { ?>
+                                    <span><?= __('Dimensions') ?></span>
+                                <?php } ?>
+                            </p>
+                        </div>
+                    </div>
+                    <?php } ?>
+                </div>
+            </div>
+            <div class="step">
+                <div class="title px-1">
+                    <h2><?= __('Apply NBOX Now shipping method') ?></h2>
+                </div>
+                <div class="body">
+                    <div class="status">
+                    <input type="checkbox" <?php echo $isActive ? "checked" : "" ?> readonly="true" disabled="true">
+                    </div>
+                    <div class="inner">
+                    <h3><?= __("Click on Activate to enable NBOX Now shipping method.") ?></h3>
+                    <p><?= __("Get started with our shipping method by clicking the Activate button—it’s that simple!") ?></p>
+                    <p><?= __("Once activated, you’ll have the flexibility to choose which of our partnered carriers to enable or disable. Just head over to your WooCommerce Shipping Options or Shipping Methods page to make adjustments that suit your needs.") ?></p>
+                    <p><?= __("We’re here to help you streamline your shipping process effortlessly!") ?></p>
+                    <?php if($isActive) { ?>
+                        <p><?= __('Send us notification once the order is ready to ship by selecting')?> <strong><?= __("Send notice to NBOX Now")?></strong> <?= __("at the")?> <strong><?= __("Order Action") ?></strong> <?= __("section of each order.")?></p>
+                        <a href="/" ?>"><?= __("Woocommerce shipping") ?></a>
+                    <?php } else { ?>
+                        <button id="btActivate" type="button" class="button button-primary" data-toggle="show"><?= __("Activate") ?></button>
+                    <?php } ?>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="step">
-            <div class="title px-1">
-                <h2>Scan product dimensions</h2>
-            </div>
-            <div class="body">
-                <div class="status">
-                <input type="checkbox" <?php echo (count($products_incomplete) < 1) ? "checked" : "" ?> readonly="true" disabled="true">
-                </div>
-                <div class="inner">
-                <h3>Get accurate shipping with product details</h3>
-                <?php if(count($products_incomplete) > 0) { ?>
-                    <p class="text-danger"><?php echo count($products_incomplete) . " product needs attention" ?></p>
-                    <button id="productView" type="button" class="button button-primary" data-toggle="show">View products</button>
-                <?php } else { ?>
-                    <p>Great news! All your products now include weight and dimensions, providing precise shipping rates for a smoother checkout experience","nboxnow-shipping-method</p>
-                <?php } ?>
-                </div>
-            </div>
-            <div id="product-list" class="product-list hide">
-                <?php foreach($products_incomplete as $product){ ?>
-                <div class="product-item">
-                    <div class="thumb-wrap">
-                        <a href="/">
-                            image
-                        </a>
-                    </div>
-                    <div class="description">
-                        <a href="/"><?= "product name" ?></a>
-                        <p class="">
-                            <span>Missing info:</span> 
-                            
-                            <span>Weight</span>
-                            
-                            <span>Dimensions</span>
-                            
-                        </p>
-                    </div>
-                </div>
-                <?php break; ?>
-                <?php } ?>
-            </div>
-        </div>
-        <div class="step">
-            <div class="title px-1">
-                <h2>Apply NBOX Now shipping method</h2>
-            </div>
-            <div class="body">
-                <div class="status">
-                <input type="checkbox" <?php echo $isActive ? "checked" : "" ?> readonly="true" disabled="true">
-                </div>
-                <div class="inner">
-                <h3>Click on Activate to enable NBOX Now shipping method.</h3>
-                <p>Get started with our shipping method by clicking the Activate button—it’s that simple!</p>
-                <p>Once activated, you’ll have the flexibility to choose which of our partnered carriers to enable or disable. Just head over to your WooCommerce Shipping Options or Shipping Methods page to make adjustments that suit your needs.</p>
-                <p>We’re here to help you streamline your shipping process effortlessly!</p>
-                <?php if($isActive) { ?>
-                    <p>Send us notification once the order is ready to ship by selecting',"nboxnow-shipping-method<strong>Send notice to NBOX Now","nboxnow-shipping-method</strong>at the<strong>Order Action</strong>section of each order</p>
-                    <a href="/">Magento shipping</a>
-                <?php } else { ?>
-                    <button id="btActivate" type="button" class="button button-primary" data-toggle="show">Activate</button>
-                <?php } ?>
-                </div>
-            </div>
-        </div>
-    </div>
     </div>
     
 </div>
