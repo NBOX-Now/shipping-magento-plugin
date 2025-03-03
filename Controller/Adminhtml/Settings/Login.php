@@ -26,6 +26,7 @@ class Login extends Action implements HttpPostActionInterface
    protected $session;
    protected $scopeConfig;
    protected $storeSource;
+   protected $nboxApi;
    
    public function __construct(
       Context $context,
@@ -36,6 +37,7 @@ class Login extends Action implements HttpPostActionInterface
       StoreSource $storeSource,
       SessionManagerInterface $session,
       ScopeConfigInterface $scopeConfig,
+      NboxApi $nboxApi
    ) {
       parent::__construct($context);
       $this->resultRedirectFactory = $resultRedirectFactory;
@@ -45,6 +47,7 @@ class Login extends Action implements HttpPostActionInterface
       $this->session = $session;
       $this->scopeConfig = $scopeConfig;
       $this->storeSource = $storeSource;
+      $this->nboxApi = $nboxApi;
    }
 
    public function execute()
@@ -85,7 +88,7 @@ class Login extends Action implements HttpPostActionInterface
       echo "<pre>"; var_dump($requestData); echo "</pre>";
 
       // Call your API for authentication
-      $response = NboxApi::login($requestData);
+      $response = $this->nboxApi->login($requestData);
       //
       if ($response['status'] === 'success') {
          // Store login token in Magento config

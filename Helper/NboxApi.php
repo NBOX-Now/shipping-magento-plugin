@@ -2,84 +2,130 @@
 
 namespace NBOX\Shipping\Helper;
 
-use Magento\Framework\App\ObjectManager;
 use Psr\Log\LoggerInterface;
-//
+use Magento\Framework\App\ObjectManager;
 use NBOX\Shipping\Utils\Constants;
 
 class NboxApi 
 {
-   /**
+    protected $storeSource;
+    protected $configHelper;
+
+    /**
+     * Constructor
+     */
+    public function __construct(
+        StoreSource $storeSource,
+        ConfigHelper $configHelper
+    ) {
+        $this->storeSource = $storeSource;
+        $this->configHelper = $configHelper;
+    }
+
+    /**
      * Get Logger Instance
      *
      * @return LoggerInterface
      */
-   private static function getLogger()
+    private static function getLogger()
+    {
+        return ObjectManager::getInstance()->get(LoggerInterface::class);
+    }
+
+    /**
+     * Handle POST requests
+     *
+     * @param string $url
+     * @param array $requestData
+     * @param array $headers (optional)
+     * @return array
+     */
+    private function makePostRequest($url, $requestData, $headers = null)
    {
-      return ObjectManager::getInstance()->get(LoggerInterface::class);
-   }
+      self::getLogger()->debug("Sending POST request to: {$url}");
+      self::getLogger()->debug("Request Data: " . json_encode($requestData));
 
-   public static function login($requestData){
-      $url = Constants::NBOX_LOGIN;
-      
-      self::getLogger()->debug('Sumasama na sila');
+      try {
+         // Default headers if none are provided
+         if ($headers === null) {
+               $headers = [
+                  'Content-Type: application/json',
+                  Constants::NBOX_NOW_HEADER_DOMAIN . ': ' . $this->getStoreDomain(),
+                  Constants::NBOX_NOW_HEADER_TOKEN . ': ' . $this->getApiToken()
+               ];
+         }
 
-      try{
          $ch = curl_init($url);
          curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
          curl_setopt($ch, CURLOPT_POST, true);
          curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($requestData));
-         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); // Follow redirects
+         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
          $response = curl_exec($ch);
-         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); // Get HTTP status code
+         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-         // Check for cURL execution errors
-        if ($response === false) {
-            $errorMessage = curl_error($ch);
-            $errorCode = curl_errno($ch);
-            curl_close($ch);
-            throw new \Exception("cURL Error #{$errorCode}: {$errorMessage}");
+         if ($response === false) {
+               $errorMessage = curl_error($ch);
+               $errorCode = curl_errno($ch);
+               curl_close($ch);
+               throw new \Exception("cURL Error #{$errorCode}: {$errorMessage}");
          }
 
          curl_close($ch);
 
-         // Check if the HTTP response code is an error (non-2xx status)
          if ($httpCode < 200 || $httpCode >= 300) {
-            throw new \Exception("HTTP Error {$httpCode}: {$response}");
+               throw new \Exception("HTTP Error {$httpCode}: {$response}");
          }
-         
+
          return json_decode($response, true);
-         
-     } catch (\Exception $e) {
-         self::getLogger()->debug('NBOX Login Error: ' . $e->getMessage());
-         return ["status"=>"failed", "message" => $e->getMessage()];
-     }
-   }
-
-   public static function getRates($requestData){
-      $url = Constants::NBOX_RATES;
-
-      try{
-            self::getLogger()->debug("Rates Request Data: " . json_encode($requestData));
-            
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                  "Content-Type" => "application/json",
-                  'x-nbox-shop-domain' => "magento-website"
-            ]);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($requestData));
-
-            $response = curl_exec($ch);
-            curl_close($ch);
-            //
-            return json_decode($response, true);
-         } catch (\Exception $e) {
-            $this->_logger->debug('NBOX Rates Error: ' . $e->getMessage());
-            return ["status"=>"failed", "message" => $e->getMessage()];
+      } catch (\Exception $e) {
+         self::getLogger()->debug("NBOX API Error: " . $e->getMessage());
+         return ["status" => "failed", "message" => $e->getMessage()];
       }
    }
+
+
+    /**
+     * Get store domain for API headers
+     *
+     * @return string
+     */
+    private function getStoreDomain()
+    {
+        $stores = $this->storeSource->getStoreShippingOrigins();
+        return !empty($stores) ? $stores[0]['store_domain'] : 'default-domain';
+    }
+
+    /**
+     * Get API token for authorization
+     *
+     * @return string
+     */
+    private function getApiToken()
+    {
+        return $this->configHelper->getApiToken() ?? 'default-token';
+    }
+
+    /**
+     * Login request
+     *
+     * @param array $requestData
+     * @return array
+     */
+    public function login($requestData)
+    {
+        return $this->makePostRequest(Constants::NBOX_LOGIN, $requestData, ['Content-Type: application/json']);
+    }
+
+    /**
+     * Get shipping rates
+     *
+     * @param array $requestData
+     * @return array
+     */
+    public function getRates($requestData)
+    {
+        return $this->makePostRequest(Constants::NBOX_RATES, $requestData);
+    }
 }
