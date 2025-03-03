@@ -36,6 +36,7 @@ class Index extends Template
         $data['dashboardUrl'] = Constants::NBOX_NOW_DASHBOARD_URL;
         //
         $data['isLogged'] = (bool) $configHelper->getApiToken();
+        $data['isActive'] = (bool) $configHelper->isPluginActive();
         parent::__construct($context, $data);
 
         $this->configHelper = $configHelper;

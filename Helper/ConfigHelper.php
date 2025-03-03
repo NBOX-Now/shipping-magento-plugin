@@ -75,6 +75,7 @@ class ConfigHelper
     public function setPluginActive($isActive)
     {
         $this->configWriter->save(self::XML_PATH_PLUGIN_ACTIVE, $isActive ? '1' : '0', ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+        $this->clearCache();
     }
     
     /**

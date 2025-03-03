@@ -1,5 +1,6 @@
 <?php
     $isLogged = $block->getData('isLogged');
+    $isActive = $block->getData('isActive');
     $supportEmail = $block->getData('supportEmail');
     $signUp = $block->getData('signUp');
     $dashboardUrl = $block->getData('dashboardUrl');
@@ -7,7 +8,6 @@
     $products_incomplete = $block->getProducts('products');
     $stepsCompleted = $block->getStepsCompleted('stepsCompleted');
 
-    $isActive = false;
     
 ?>
 <div class="nboxnow-shipping-method">
@@ -138,19 +138,24 @@
                 </div>
                 <div class="body">
                     <div class="status">
-                    <input type="checkbox" <?php echo $isActive ? "checked" : "" ?> readonly="true" disabled="true">
+                        <input type="checkbox" <?php echo $isActive ? "checked" : "" ?> readonly="true" disabled="true">
                     </div>
                     <div class="inner">
-                    <h3><?= __("Click on Activate to enable NBOX Now shipping method.") ?></h3>
-                    <p><?= __("Get started with our shipping method by clicking the Activate button—it’s that simple!") ?></p>
-                    <p><?= __("Once activated, you’ll have the flexibility to choose which of our partnered carriers to enable or disable. Just head over to your WooCommerce Shipping Options or Shipping Methods page to make adjustments that suit your needs.") ?></p>
-                    <p><?= __("We’re here to help you streamline your shipping process effortlessly!") ?></p>
-                    <?php if($isActive) { ?>
-                        <p><?= __('Send us notification once the order is ready to ship by selecting')?> <strong><?= __("Send notice to NBOX Now")?></strong> <?= __("at the")?> <strong><?= __("Order Action") ?></strong> <?= __("section of each order.")?></p>
-                        <a href="/" ?>"><?= __("Woocommerce shipping") ?></a>
-                    <?php } else { ?>
-                        <button id="btActivate" type="button" class="button button-primary" data-toggle="show"><?= __("Activate") ?></button>
-                    <?php } ?>
+                        <h3><?= __("Click on Activate to enable NBOX Now shipping method.") ?></h3>
+                        <p><?= __("Get started with our shipping method by clicking the Activate button—it’s that simple!") ?></p>
+                        <p><?= __("Once activated, you’ll have the flexibility to choose which of our partnered carriers to enable or disable. Just head over to your WooCommerce Shipping Options or Shipping Methods page to make adjustments that suit your needs.") ?></p>
+                        <p><?= __("We’re here to help you streamline your shipping process effortlessly!") ?></p>
+
+                        <form action="<?= $block->getUrl('nbox_shipping/settings/activation') ?>" method="POST">
+                            <input type="hidden" name="form_key" value="<?= $block->getFormKey() ?>" />
+                            <input type="hidden" name="isActive" value="<?= $isActive ?>" />
+
+                            <?php if($isActive) { ?>
+                                <button type="submit" class="button button-primary" data-toggle="show"><?= __("Deactivate") ?></button>
+                            <?php } else { ?>
+                                <button type="submit" class="button button-primary" data-toggle="show"><?= __("Activate") ?></button>
+                            <?php } ?>
+                        </form>
                     </div>
                 </div>
             </div>

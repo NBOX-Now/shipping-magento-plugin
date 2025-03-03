@@ -11,9 +11,6 @@ class NboxApi
     protected $storeSource;
     protected $configHelper;
 
-    /**
-     * Constructor
-     */
     public function __construct(
         StoreSource $storeSource,
         ConfigHelper $configHelper
@@ -22,24 +19,11 @@ class NboxApi
         $this->configHelper = $configHelper;
     }
 
-    /**
-     * Get Logger Instance
-     *
-     * @return LoggerInterface
-     */
     private static function getLogger()
     {
         return ObjectManager::getInstance()->get(LoggerInterface::class);
     }
 
-    /**
-     * Handle POST requests
-     *
-     * @param string $url
-     * @param array $requestData
-     * @param array $headers (optional)
-     * @return array
-     */
     private function makePostRequest($url, $requestData, $headers = null)
    {
       self::getLogger()->debug("Sending POST request to: {$url}");
@@ -85,45 +69,27 @@ class NboxApi
       }
    }
 
-
-    /**
-     * Get store domain for API headers
-     *
-     * @return string
-     */
     private function getStoreDomain()
     {
         $stores = $this->storeSource->getStoreShippingOrigins();
         return !empty($stores) ? $stores[0]['store_domain'] : 'default-domain';
     }
 
-    /**
-     * Get API token for authorization
-     *
-     * @return string
-     */
     private function getApiToken()
     {
         return $this->configHelper->getApiToken() ?? 'default-token';
     }
 
-    /**
-     * Login request
-     *
-     * @param array $requestData
-     * @return array
-     */
     public function login($requestData)
     {
         return $this->makePostRequest(Constants::NBOX_LOGIN, $requestData, ['Content-Type: application/json']);
     }
+    
+    public function activate($requestData)
+    {
+        return $this->makePostRequest(Constants::NBOX_ACTIVATION, $requestData);
+    }
 
-    /**
-     * Get shipping rates
-     *
-     * @param array $requestData
-     * @return array
-     */
     public function getRates($requestData)
     {
         return $this->makePostRequest(Constants::NBOX_RATES, $requestData);
