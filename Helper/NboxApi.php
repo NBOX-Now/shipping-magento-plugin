@@ -26,8 +26,8 @@ class NboxApi
 
     private function makePostRequest($url, $requestData, $headers = null)
    {
-      self::getLogger()->debug("Sending POST request to: {$url}");
-      self::getLogger()->debug("Request Data: " . json_encode($requestData));
+    //   self::getLogger()->debug("Sending POST request to: {$url}");
+    //   self::getLogger()->debug("Request Data: " . json_encode($requestData));
 
       try {
          // Default headers if none are provided
@@ -93,5 +93,10 @@ class NboxApi
     public function getRates($requestData)
     {
         return $this->makePostRequest(Constants::NBOX_RATES, $requestData);
+    }
+
+    public function checkout($requestData)
+    {
+        return $this->makePostRequest(Constants::NBOX_ORDER, $requestData);
     }
 }

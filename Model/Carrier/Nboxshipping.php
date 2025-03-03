@@ -70,7 +70,6 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
             $this->_logger->debug("Stopped NBOX Method");
             return false;
         }
-        $this->_logger->debug("PROCEED NBOX Method");
         /**
          * Start custom script
          * Call NBOX Now Rates API here
@@ -102,15 +101,15 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
                 $totalVolume += ($length * $width * $height);
             }
         }
-        $this->_logger->debug("ORIGIN: " . $origin["name"]);
+        // $this->_logger->debug("ORIGIN: " . $origin["name"]);
         // $this->_logger->debug("ORIGIN: " . json_encode($origin));
         
         // Prepare weight
         $weight = $request->getPackageWeight();
         $weightUnit = $this->_scopeConfig->getValue('general/locale/weight_unit',ScopeInterface::SCOPE_STORE);
-        $this->_logger->debug("WEIGHT: " . $weightUnit);
+        // $this->_logger->debug("WEIGHT: " . $weightUnit);
         $weight = Converter::convertToKg($weight, $weightUnit);
-        $this->_logger->debug("tapos: " . $weight);
+        // $this->_logger->debug("tapos: " . $weight);
         
         $requestData = [
             'origin' => [

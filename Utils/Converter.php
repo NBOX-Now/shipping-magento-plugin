@@ -5,7 +5,7 @@ class Converter
 {
    private static $weightToKg = [
       'kg'  => 1,         // Kilograms
-      'kgs'  => 1,         // Kilograms
+      'kgs'  => 1,        // Kilograms
       'g'   => 0.001,     // Grams
       'mg'  => 0.000001,  // Milligrams
       'lbs' => 0.453592,  // Pounds
@@ -25,6 +25,17 @@ class Converter
       if (isset(self::$weightToKg[$unit])) {
           return $value * self::$weightToKg[$unit];
       }
-      throw new Exception("Unsupported weight unit: $unit");
+      throw new \Exception("Unsupported weight unit: $unit");
+  }
+
+  /**
+   * Convert weight to grams
+   * @param float $value - weight value
+   * @param string $unit - weight unit (kg, g, mg, lbs, oz, ton)
+   * @return float - converted value in grams
+   */
+  public static function convertToGrams($value, $unit)
+  {
+      return self::convertToKg($value, $unit) * 1000;
   }
 }
