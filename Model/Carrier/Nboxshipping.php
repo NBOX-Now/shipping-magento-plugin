@@ -19,6 +19,8 @@ use Magento\Catalog\Model\Product\Type;
 //
 use Nbox\Shipping\Helper\ProductSource;
 use Nbox\Shipping\Helper\NboxApi;
+use Nbox\Shipping\Helper\ConfigHelper;
+use Nbox\Shipping\Utils\Converter;
  
 class Nboxshipping extends AbstractCarrier implements CarrierInterface {
  
@@ -32,6 +34,8 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
     protected $rateResultFactory;
     protected $rateMethodFactory;
     protected $productSource;
+    protected $configHelper;
+    protected $nboxApi;
  
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -40,6 +44,8 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
         ResultFactory $rateResultFactory,
         MethodFactory $rateMethodFactory,
         ProductRepository $productRepository,
+        ConfigHelper $configHelper,
+        NboxApi $nboxApi,
         Curl $curl,
         ProductSource $productSource,
         array $data = []
@@ -47,6 +53,8 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
         $this->rateResultFactory = $rateResultFactory;
         $this->rateMethodFactory = $rateMethodFactory;
         $this->productRepository = $productRepository;
+        $this->configHelper = $configHelper;
+        $this->nboxApi = $nboxApi;
         $this->_curl = $curl; 
         $this->productSource = $productSource;
         parent::__construct($scopeConfig, $rateErrorFactory, $logger, $data);
@@ -58,10 +66,11 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
     }
  
     public function collectRates(RateRequest $request){
-        if (!$this->getConfigFlag('active')) {
+        if (!$this->getConfigFlag('active') || !$this->configHelper->isPluginActive()) {
+            $this->_logger->debug("Stopped NBOX Method");
             return false;
         }
-
+        $this->_logger->debug("PROCEED NBOX Method");
         /**
          * Start custom script
          * Call NBOX Now Rates API here
@@ -100,7 +109,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
         $weight = $request->getPackageWeight();
         $weightUnit = $this->_scopeConfig->getValue('general/locale/weight_unit',ScopeInterface::SCOPE_STORE);
         $this->_logger->debug("WEIGHT: " . $weightUnit);
-        $weight = $this->convertToKg($weight, $weightUnit);
+        $weight = Converter::convertToKg($weight, $weightUnit);
         $this->_logger->debug("tapos: " . $weight);
         
         $requestData = [
@@ -121,7 +130,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
             'volume' => $totalVolume,
         ];
 
-        $response = NboxApi::getRates($requestData);
+        $response = $this->nboxApi->getRates($requestData);
         $result = $this->rateResultFactory->create();
 
         foreach($response['rates'] as $item){
@@ -137,30 +146,5 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface {
             $result->append($method);
         }
         return $result;
-    }
-
-    private static $weightToKg = [
-        'kg'  => 1,         // Kilograms
-        'kgs'  => 1,         // Kilograms
-        'g'   => 0.001,     // Grams
-        'mg'  => 0.000001,  // Milligrams
-        'lbs' => 0.453592,  // Pounds
-        'oz'  => 0.0283495, // Ounces
-        'ton' => 1000,      // Metric tons
-    ];
-
-    /**
-     * Convert weight to kilograms
-     * @param float $value - weight value
-     * @param string $unit - weight unit (kg, g, mg, lbs, oz, ton)
-     * @return float - converted value in kg
-     */
-    public static function convertToKg($value, $unit)
-    {
-        $unit = strtolower($unit);
-        if (isset(self::$weightToKg[$unit])) {
-            return $value * self::$weightToKg[$unit];
-        }
-        throw new Exception("Unsupported weight unit: $unit");
     }
 }
