@@ -58,4 +58,16 @@ class StoreSource
 
       return $shippingOrigins;
    }
+
+   public function getShipmentOrigin(){
+      return [
+         'phone'        => $this->scopeConfig->getValue('general/store_information/phone',ScopeInterface::SCOPE_STORES,$storeId),
+         'address'      => $this->scopeConfig->getValue('shipping/origin/street_line1', ScopeInterface::SCOPE_STORES, $storeId) . ", " . $this->scopeConfig->getValue('shipping/origin/street_line2', ScopeInterface::SCOPE_STORES, $storeId),
+         'city'         => $this->scopeConfig->getValue('shipping/origin/city', ScopeInterface::SCOPE_STORES, $storeId),
+         'state'        => $this->scopeConfig->getValue('shipping/origin/region_id', ScopeInterface::SCOPE_STORES, $storeId),
+         'zip'          => $this->scopeConfig->getValue('shipping/origin/postcode', ScopeInterface::SCOPE_STORES, $storeId),
+         'country_code' => $this->scopeConfig->getValue('shipping/origin/country_id', ScopeInterface::SCOPE_STORES, $storeId),
+         'country_name' => $this->countryInformation->getCountryInfo($countryCode)->getFullNameLocale(),
+      ];
+   }
 }

@@ -107,4 +107,9 @@ class NboxApi
     {
         return $this->makePostRequest(Constants::NBOX_FULFILLED, $requestData);
     }
+    public function locations($requestData)
+    {
+        return $this->makePostRequest(Constants::NBOX_LOCATIONS, $requestData);
+    }
+
 }

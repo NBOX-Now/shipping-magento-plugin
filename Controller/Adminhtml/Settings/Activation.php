@@ -65,7 +65,7 @@ class Activation extends Action implements HttpPostActionInterface
                            "name"         => $store["store_name"],
                            "address"      => $store["address"],
                            "city"         => $store["city"],
-                           "countyCode"   => $store["country_code"],
+                           "countryCode"   => $store["country_code"],
                            "country"      => $store["country_name"],
                            "state"        => $store["state"],
                            "zip"          => $store["zip"],
