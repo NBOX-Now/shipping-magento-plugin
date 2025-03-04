@@ -46,12 +46,65 @@ class OrderPlugin
     {
         $this->logger->debug("Plugin Triggered: Order placed!");
 
+        $request = $this->formOrderData($subject);
+        
+        try{
+            $this->nboxApi->checkout($request);
+        } catch (\Exception $e) {
+            $this->logger->error("Checkout Error: " . $e->getMessage());
+        }
+        return $result; // Ensure original result is returned
+    }
+    /**
+     * Process order cancellation
+     */
+    public function afterCancel(Order $subject, $result)
+    {
+        try {
+            $this->logger->info("Order canceled via Plugin: " . $subject->getIncrementId());
+
+            $data = ["id" => intval($subject->getIncrementId())];
+
+            // Call external API
+            $this->logger->debug("TO SEND:", $data);
+            $this->nboxApi->cancelled($data);
+
+        } catch (\Exception $e) {
+            $this->logger->error("Order cancel plugin error: " . $e->getMessage());
+        }
+
+        return $result;
+    }
+    /**
+     * Process order fulfilled
+     */
+    public function afterSave(Order $subject, $result)
+    {
+        $this->logger->debug("ON STATUS: " . $subject->getStatus());
+        $status = $subject->getStatus();
+
+
+        if ($status == 'shipped' || $status == "ready_for_pickup" || $status == 'processing') {
+            try{
+                $request = $this->formOrderData($subject);
+                $this->logger->debug("TO SEND:", $request);
+                $this->nboxApi->fulfilled($request);
+            } catch (\Exception $e) {
+                $this->logger->error("Checkout Error: " . $e->getMessage());
+            }
+        }
+
+        return $result;
+    }
+
+    private function formOrderData(Order $subject){
         $stores = $this->storeSource->getStoreShippingOrigins();
         // Get Shipping Address
         $shippingAddress = $subject->getShippingAddress();
         //
-        $toSend = [
+        $data = [
             "order" => [
+                "id"              => intval($subject->getIncrementId()),
                 "shopDomain"      => $stores[0]['store_domain'],
                 "carrier"         => str_replace("nboxshipping_", "", $subject->getShippingMethod()),
                 "subTotal"        => (float) $subject->getSubtotal(),
@@ -96,7 +149,7 @@ class OrderPlugin
             $width  = $product->getCustomAttribute('width') ? $product->getCustomAttribute('width')->getValue() : 0;
             $height = $product->getCustomAttribute('height') ? $product->getCustomAttribute('height')->getValue() : 0;
 
-            $toSend["products"][] = [
+            $data["products"][] = [
                 "name"      => $item->getName(),
                 "quantity"  => (float) $item->getQtyOrdered(),
                 "price"     => (float) $item->getPrice(),
@@ -108,12 +161,6 @@ class OrderPlugin
                 "currency"  => $subject->getOrderCurrencyCode(),
             ];
         }
-        $this->logger->debug("TO SEND:", $toSend);
-        
-
-        // Log the order details (for debugging)
-        $this->nboxApi->checkout($toSend);
-
-        return $result; // Ensure original result is returned
+        return $data;
     }
 }

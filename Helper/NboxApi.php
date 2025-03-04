@@ -99,4 +99,12 @@ class NboxApi
     {
         return $this->makePostRequest(Constants::NBOX_ORDER, $requestData);
     }
+    public function cancelled($requestData)
+    {
+        return $this->makePostRequest(Constants::NBOX_CANCELLED, $requestData);
+    }
+    public function fulfilled($requestData)
+    {
+        return $this->makePostRequest(Constants::NBOX_FULFILLED, $requestData);
+    }
 }
