@@ -54,6 +54,14 @@
       width: 100%;
     }
   }
+  .spacer-1 {
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+  .spacer-2 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
 
   .callout {
     display: flex;

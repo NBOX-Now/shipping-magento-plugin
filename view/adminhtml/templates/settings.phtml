@@ -42,7 +42,7 @@
                     </div>
                     <div class="inner">
                         <h3><?= __('Login NBOX Now')  ?></h3>
-                        <p><?= __('Login on your account with us') ?></p>
+                        <p class="spacer-1"><?= __('Login on your account with us') ?></p>
                         <?php if(!$isLogged) { ?>
                             <div id="login-control">
                                 <button id="showLogin" class="button button-primary"><?= __('Login') ?></button>
@@ -57,13 +57,12 @@
                         <?php } ?> 
                         <div id="login-control">
                             <div id="login-wrap" class="hide">
-                                <hr/>
                                 <form id="loginFormNbox"  action="<?= $block->getUrl('nbox_shipping/settings/login') ?>" method="post">
                                     <input type="hidden" class="admin__control-text" name="form_key" value="<?= $block->getFormKey() ?>" />
 
                                     <div class="admin__fieldset">
-                                        <div class="admin__field admin__field-left">
-                                            <label for="username" class="admin__field-label">
+                                        <div class="form-group">
+                                            <label for="username" class="admin__field-label-group">
                                                 <span><?= __('Email') ?></span>
                                             </label>
                                             <div class="admin__field-control">
@@ -71,7 +70,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="admin__field admin__field-left">
+                                        <div class="">
                                             <label for="password" class="admin__field-label">
                                                 <span><?= __('Password') ?></span>
                                             </label>
@@ -80,7 +79,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="admin__actions">
+                                        <div class="admin__actions spacer-2">
                                             <button type="submit" class="action-primary"><?= __("Login") ?></button>
                                         </div>
                                     </div>

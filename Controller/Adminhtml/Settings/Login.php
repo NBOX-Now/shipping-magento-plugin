@@ -85,8 +85,6 @@ class Login extends Action implements HttpPostActionInterface
                            "phone"        => $store['phone']
                         ]]
       ];
-      echo "<pre>"; var_dump($requestData); echo "</pre>";
-
       // Call your API for authentication
       $response = $this->nboxApi->login($requestData);
       //
