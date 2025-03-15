@@ -2,20 +2,14 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
-        <add id="NBOX_Shipping::main"
-             title="NBOX Shipping"
-             module="NBOX_Shipping"
-             sortOrder="10"
-             action="nbox_shipping/settings/index"
-             resource="NBOX_Shipping::settings"/>
-             <!-- resource="NBOX_Shipping::config"/> -->
-
-        <!-- <add id="NBOX_Shipping::settings"
-             title="Settings"
-             module="NBOX_Shipping"
-             sortOrder="20"
-             parent="NBOX_Shipping::main"
-             action="nbox_shipping/settings/index"
-             resource="NBOX_Shipping::settings"/> -->
+        <add 
+            id="NBOX_Shipping::main"
+            title="NBOX Shipping"
+            module="NBOX_Shipping"
+            sortOrder="10"
+            action="nbox_shipping/settings/index"
+            resource="NBOX_Shipping::settings"
+            
+        />
     </menu>
 </config>

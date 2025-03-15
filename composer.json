@@ -2,7 +2,7 @@
   "name": "nbox/shipping",
   "description": "NBOX shipping module",
   "require": {
-    "php": "~7.4.0||~8.1.0",
+    "php": "~8.1.0||~8.2.0",
     "magento/framework": "102.0.*",
     "magento/module-backend": "101.0.*",
     "magento/module-catalog": "103.0.*",
@@ -26,5 +26,6 @@
     "psr-4": {
       "NBOX\\Shipping\\": ""
     }
-  }
+  },
+  "version": "1.0.0"
 }
