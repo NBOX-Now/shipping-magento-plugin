@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout.xsd">
+<layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout.xsd">
     <referenceBlock name="NBOX_Shipping::shipping">
         <arguments>
             <argument name="icon" xsi:type="string">NBOX_Shipping::images/custom-icon.svg</argument>

@@ -1,19 +1,40 @@
 <?php
+
 namespace NBOX\Shipping\Plugin;
 
 use Magento\Store\Model\ResourceModel\StoreRepository;
 use Magento\Store\Api\Data\StoreInterface;
 use Psr\Log\LoggerInterface;
-//
 use NBOX\Shipping\Helper\StoreSource;
 use NBOX\Shipping\Helper\NboxApi;
 
+/**
+ * Plugin for StoreRepository::save()
+ * Runs after a store is saved in Magento.
+ */
 class StoreRepoPlugin
 {
+    /**
+     * @var LoggerInterface
+     */
     protected $logger;
-    protected $storeSource;
-    protected $NboxApi;
 
+    /**
+     * @var StoreSource
+     */
+    protected $storeSource;
+
+    /**
+     * @var NboxApi
+     */
+    protected $nboxApi;
+
+    /**
+     * StoreRepoPlugin constructor.
+     * @param LoggerInterface $logger
+     * @param StoreSource $storeSource
+     * @param NboxApi $nboxApi
+     */
     public function __construct(
         LoggerInterface $logger,
         StoreSource $storeSource,
@@ -25,13 +46,20 @@ class StoreRepoPlugin
     }
 
     /**
-     * Plugin for StoreRepository::save()
+     * After save plugin for StoreRepository::save().
+     *
      * Runs after a store is saved in Magento.
+     *
+     * @param StoreRepository $subject
+     * @param mixed $result
+     * @param StoreInterface $store
+     * @return mixed
      */
     public function afterSave(StoreRepository $subject, $result, StoreInterface $store)
     {
-      $this->logger->debug('STORE UPDATE BABY!: ');
-      return
+        $this->logger->debug('STORE UPDATE BABY!: ');
+
+        // Ensure code is executed properly before return
         $storeId = $store->getId();
         $shippingOrigins = $this->storeSource->getStoreShippingOrigins();
 
@@ -41,14 +69,14 @@ class StoreRepoPlugin
         });
 
         if (!empty($updatedStore)) {
-           $this->logger->info('Store BEFORE: ' . json_encode($updatedStore));
+            $this->logger->info('Store BEFORE: ' . json_encode($updatedStore));
             $updatedStore = reset($updatedStore); // Get the first element
 
             // Log data for debugging
             $this->logger->info('Store AFTER: ' . json_encode($updatedStore));
 
             // Push store data to external API
-            // $this->apiHelper->sendStoreData($updatedStore);
+            // $this->nboxApi->sendStoreData($updatedStore);
         }
 
         return $result;

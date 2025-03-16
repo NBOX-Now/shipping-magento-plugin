@@ -5,10 +5,19 @@ use Magento\Backend\App\Action;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\ResultFactory;
 
+/**
+ * Save action for the NBOX Shipping settings page
+ */
 class Save extends Action implements HttpPostActionInterface
 {
-    const ADMIN_RESOURCE = 'NBOX_Shipping::settings';
+    /**
+     * Admin resource for settings access
+     */
+    public const ADMIN_RESOURCE = 'NBOX_Shipping::settings';
 
+    /**
+     * Execute the save action
+     */
     public function execute()
     {
         // Get POST data

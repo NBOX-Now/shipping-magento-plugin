@@ -13,12 +13,8 @@
     "AFL-3.0"
   ],
   "autoload": {
-    "files": [
-      "registration.php",
-      "etc/module.xml"
-    ],
     "psr-4": {
-      "NBOX\\Shipping\\": "App/code/Nbox/Shipping"
+      "NBOX\\Shipping\\": ""
     }
   }
 }

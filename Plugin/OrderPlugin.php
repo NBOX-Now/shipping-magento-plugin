@@ -8,27 +8,70 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Store\Model\ScopeInterface;
-//
 use Nbox\Shipping\Helper\StoreSource;
 use Nbox\Shipping\Helper\NboxApi;
 use Nbox\Shipping\Utils\Converter;
 
+/**
+ * Class OrderPlugin
+ * This plugin handles order-related actions for the Nbox Shipping service.
+ */
 class OrderPlugin
 {
+    /**
+     * @var StoreManagerInterface
+     */
     protected $storeManager;
+
+    /**
+     * @var ScopeConfigInterface
+     */
     protected $storeConfig;
+
+    /**
+     * @var ProductRepositoryInterface
+     */
     protected $productRepository;
+
+    /**
+     * @var LoggerInterface
+     */
     protected $logger;
+
+    /**
+     * @var StoreSource
+     */
     protected $storeSource;
+
+    /**
+     * @var NboxApi
+     */
     protected $nboxApi;
 
+    /**
+     * @var Converter
+     */
+    protected $converter;
+
+    /**
+     * OrderPlugin constructor.
+     *
+     * @param StoreManagerInterface $storeManager
+     * @param ScopeConfigInterface $storeConfig
+     * @param ProductRepositoryInterface $productRepository
+     * @param LoggerInterface $logger
+     * @param StoreSource $storeSource
+     * @param NboxApi $nboxApi
+     * @param Converter $converter
+     */
     public function __construct(
         StoreManagerInterface $storeManager,
         ScopeConfigInterface $storeConfig,
         ProductRepositoryInterface $productRepository,
         LoggerInterface $logger,
         StoreSource $storeSource,
-        NboxApi $nboxApi
+        NboxApi $nboxApi,
+        Converter $converter
     ) {
         $this->storeManager = $storeManager;
         $this->storeConfig = $storeConfig;
@@ -36,11 +79,17 @@ class OrderPlugin
         $this->logger = $logger;
         $this->storeSource = $storeSource;
         $this->nboxApi = $nboxApi;
+        $this->converter = $converter;
     }
 
     /**
      * Plugin for Order::place()
+     *
      * This method runs AFTER an order is placed.
+     *
+     * @param Order $subject
+     * @param mixed $result
+     * @return mixed
      */
     public function afterPlace(Order $subject, $result)
     {
@@ -48,22 +97,28 @@ class OrderPlugin
 
         $request = $this->formOrderData($subject);
         
-        try{
+        try {
             $this->nboxApi->checkout($request);
         } catch (\Exception $e) {
             $this->logger->error("Checkout Error: " . $e->getMessage());
         }
+        
         return $result; // Ensure original result is returned
     }
+
     /**
      * Process order cancellation
+     *
+     * @param Order $subject
+     * @param mixed $result
+     * @return mixed
      */
     public function afterCancel(Order $subject, $result)
     {
         try {
             $this->logger->info("Order canceled via Plugin: " . $subject->getIncrementId());
 
-            $data = ["id" => intval($subject->getIncrementId())];
+            $data = ["id" => (int) $subject->getIncrementId()];
 
             // Call external API
             $this->logger->debug("TO SEND:", $data);
@@ -75,17 +130,21 @@ class OrderPlugin
 
         return $result;
     }
+
     /**
      * Process order fulfilled
+     *
+     * @param Order $subject
+     * @param mixed $result
+     * @return mixed
      */
     public function afterSave(Order $subject, $result)
     {
         $this->logger->debug("ON STATUS: " . $subject->getStatus());
         $status = $subject->getStatus();
 
-
         if ($status == 'shipped' || $status == "ready_for_pickup" || $status == 'processing') {
-            try{
+            try {
                 $request = $this->formOrderData($subject);
                 $this->logger->debug("TO SEND:", $request);
                 $this->nboxApi->fulfilled($request);
@@ -97,18 +156,26 @@ class OrderPlugin
         return $result;
     }
 
-    private function formOrderData(Order $subject){
+    /**
+     * Forms the order data to be sent to the Nbox API
+     *
+     * @param Order $subject
+     * @return array
+     */
+    private function formOrderData(Order $subject)
+    {
         $stores = $this->storeSource->getStoreShippingOrigins();
+        
         // Get Shipping Address
         $shippingAddress = $subject->getShippingAddress();
-        //
+        
         $data = [
             "order" => [
-                "id"              => intval($subject->getIncrementId()),
+                "id"              => (int) $subject->getIncrementId(),
                 "shopDomain"      => $stores[0]['store_domain'],
                 "carrier"         => str_replace("nboxshipping_", "", $subject->getShippingMethod()),
                 "subTotal"        => (float) $subject->getSubtotal(),
-                "orderNumber"     => intval($subject->getIncrementId()),
+                "orderNumber"     => (int) $subject->getIncrementId(),
                 "orderReference"  => $subject->getIncrementId(),
                 "total"           => (float) $subject->getGrandTotal(),
                 "currency"        => $subject->getOrderCurrencyCode(),
@@ -124,8 +191,10 @@ class OrderPlugin
                 "address" => $this->storeConfig->getValue('shipping/origin/region_id', ScopeInterface::SCOPE_STORE),
                 "city" => $this->storeConfig->getValue('shipping/origin/city', ScopeInterface::SCOPE_STORE),
                 "zip" => $this->storeConfig->getValue('shipping/origin/postcode', ScopeInterface::SCOPE_STORE),
-                "countryCode" => $this->storeConfig->getValue('shipping/origin/country_id', ScopeInterface::SCOPE_STORE),
-                
+                "countryCode" => $this->storeConfig->getValue(
+                    'shipping/origin/country_id',
+                    ScopeInterface::SCOPE_STORE
+                ),
             ],
             "destination" => [
                 "address"         => $shippingAddress ? implode(" ", $shippingAddress->getStreet()) : '',
@@ -153,7 +222,7 @@ class OrderPlugin
                 "name"      => $item->getName(),
                 "quantity"  => (float) $item->getQtyOrdered(),
                 "price"     => (float) $item->getPrice(),
-                "grams"     => Converter::convertToGrams((float) $weight, $weightUnit),
+                "grams"     => $this->converter->convertToGrams((float) $weight, $weightUnit),
                 "length"    => (float) $length,
                 "width"     => (float) $width,
                 "height"    => (float)$height,

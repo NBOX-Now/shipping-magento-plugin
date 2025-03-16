@@ -9,11 +9,29 @@ use Magento\Catalog\Model\Product;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 use Magento\Framework\Setup\Patch\PatchRevertableInterface;
 
-class AddShippingRatesData implements DataPatchInterface, PatchRevertableInterface
+/**
+ * Class AddShippingRatesData
+ *
+ * Data patch to add shipping rate attributes to products.
+ */
+class AddShippingRatesData implements DataPatchInterface
 {
+    /**
+     * @var EavSetupFactory
+     */
     private $eavSetupFactory;
+
+    /**
+     * @var ModuleDataSetupInterface
+     */
     private $moduleDataSetup;
 
+    /**
+     * AddShippingRatesData constructor.
+     *
+     * @param ModuleDataSetupInterface $moduleDataSetup
+     * @param EavSetupFactory $eavSetupFactory
+     */
     public function __construct(
         ModuleDataSetupInterface $moduleDataSetup,
         EavSetupFactory $eavSetupFactory
@@ -22,6 +40,11 @@ class AddShippingRatesData implements DataPatchInterface, PatchRevertableInterfa
         $this->eavSetupFactory = $eavSetupFactory;
     }
 
+    /**
+     * Apply the patch to add custom shipping rate attributes.
+     *
+     * @return void
+     */
     public function apply()
     {
         /** @var EavSetup $eavSetup */
@@ -30,14 +53,15 @@ class AddShippingRatesData implements DataPatchInterface, PatchRevertableInterfa
 
         $setup->startSetup();
 
-        // Get the default attribute set ID
+        // Get the default attribute set ID for products
         $attributeSetId = $eavSetup->getDefaultAttributeSetId(Product::ENTITY);
         $groupName = 'Product Details';
-        
-        // Ensure the attribute group exists
+
+        // Ensure the attribute group exists, create it if not
         try {
             $groupId = $eavSetup->getAttributeGroupId(Product::ENTITY, $attributeSetId, $groupName);
         } catch (\Exception $e) {
+            // If the group doesn't exist, create it
             $eavSetup->addAttributeGroup(Product::ENTITY, $attributeSetId, $groupName, 99);
             $groupId = $eavSetup->getAttributeGroupId(Product::ENTITY, $attributeSetId, $groupName);
         }
@@ -49,6 +73,7 @@ class AddShippingRatesData implements DataPatchInterface, PatchRevertableInterfa
             'height' => 'Height (cm)',
         ];
 
+        // Add each attribute to the product entity
         foreach ($attributes as $code => $label) {
             $eavSetup->addAttribute(
                 Product::ENTITY,
@@ -77,7 +102,7 @@ class AddShippingRatesData implements DataPatchInterface, PatchRevertableInterfa
                 ]
             );
 
-            // Assign attribute to group
+            // Assign attribute to the group
             $eavSetup->addAttributeToGroup(
                 Product::ENTITY,
                 $attributeSetId,
@@ -90,16 +115,21 @@ class AddShippingRatesData implements DataPatchInterface, PatchRevertableInterfa
         $setup->endSetup();
     }
 
+    /**
+     * Get patch dependencies.
+     *
+     * @return array
+     */
     public static function getDependencies()
     {
         return [];
     }
 
-    public function revert()
-    {
-        // Optionally add revert logic if necessary
-    }
-
+    /**
+     * Get patch aliases.
+     *
+     * @return array
+     */
     public function getAliases()
     {
         return [];

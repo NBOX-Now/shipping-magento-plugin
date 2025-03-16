@@ -7,29 +7,55 @@ use Magento\Framework\App\Config\ConfigResource\ConfigInterface;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Cache\Manager;
 use Magento\Framework\App\Cache\Type\Config;
-
 use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Helper class for managing configuration settings of NBOX Shipping module.
+ */
 class ConfigHelper
 {
-    const XML_PATH_API_TOKEN = 'nbox_shipping/auth/api_token';
-    const XML_PATH_PLUGIN_ACTIVE = 'nbox_shipping/general/active';
+    /** @var string API token config path */
+    private const XML_PATH_API_TOKEN = 'nbox_shipping/auth/api_token';
 
+    /** @var string Plugin activation status config path */
+    private const XML_PATH_PLUGIN_ACTIVE = 'nbox_shipping/general/active';
+
+    /** @var WriterInterface */
     protected $configWriter;
+
+    /** @var ScopeConfigInterface */
     protected $scopeConfig;
+
+    /** @var ConfigInterface */
     protected $configInterface;
+
+    /** @var LoggerInterface */
     protected $logger;
+
+    /** @var TypeListInterface */
     protected $cacheTypeList;
+
+    /** @var Manager */
     protected $cacheManager;
 
+    /**
+     * ConfigHelper constructor.
+     *
+     * @param WriterInterface $configWriter
+     * @param ScopeConfigInterface $scopeConfig
+     * @param ConfigInterface $configInterface
+     * @param TypeListInterface $cacheTypeList
+     * @param Manager $cacheManager
+     * @param LoggerInterface $logger
+     */
     public function __construct(
         WriterInterface $configWriter,
         ScopeConfigInterface $scopeConfig,
         ConfigInterface $configInterface,
         TypeListInterface $cacheTypeList,
         Manager $cacheManager,
-        LoggerInterface $logger,
+        LoggerInterface $logger
     ) {
         $this->configWriter = $configWriter;
         $this->scopeConfig = $scopeConfig;
@@ -39,76 +65,91 @@ class ConfigHelper
         $this->logger = $logger;
     }
 
-    public function saveApiToken($token)
+    /**
+     * Save the API token to Magento configuration.
+     *
+     * @param string $token API token to save.
+     */
+    public function saveApiToken(string $token): void
     {
-        // Save the API token to config
         $this->configWriter->save(self::XML_PATH_API_TOKEN, $token, ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
-        
-        // Clear Magento cache
         $this->clearCache();
     }
 
     /**
-     * Get API Token Password
+     * Retrieve the stored API token.
+     *
+     * @return string|null API token if available, otherwise null.
      */
-    public function getApiToken()
+    public function getApiToken(): ?string
     {
         return $this->scopeConfig->getValue(self::XML_PATH_API_TOKEN, ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
     }
     
-    public function deleteApiToken()
+    /**
+     * Delete the stored API token.
+     *
+     * @return array Status of the deletion operation.
+     */
+    public function deleteApiToken(): array
     {
         try {
-            $this->configInterface->deleteConfig(self::XML_PATH_API_TOKEN, ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0);
-            
+            $this->configInterface->deleteConfig(
+                self::XML_PATH_API_TOKEN,
+                ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+                0
+            );
             $this->clearCache();
             return ["status" => "success"];
         } catch (\Exception $e) {
-            $this->logger->debug("Error on deleting token: " . $e->getMessage());
+            $this->logger->debug("Error deleting API token: " . $e->getMessage());
             return ["status" => "failed", "message" => $e->getMessage()];
         }
     }
-    
+
     /**
-     * Save Plugin Activation Status
+     * Save the plugin activation status.
+     *
+     * @param bool $isActive True to activate, false to deactivate.
      */
-    public function setPluginActive($isActive)
+    public function setPluginActive(bool $isActive): void
     {
-        $this->configWriter->save(self::XML_PATH_PLUGIN_ACTIVE, $isActive ? '1' : '0', ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+        $this->configWriter->save(
+            self::XML_PATH_PLUGIN_ACTIVE,
+            $isActive ? '1' : '0',
+            ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+        );
         $this->clearCache();
     }
-    
+
     /**
-     * Check if Plugin is Active
+     * Check if the plugin is active.
+     *
+     * @return bool True if active, false otherwise.
      */
-    public function isPluginActive()
+    public function isPluginActive(): bool
     {
-        return (bool) $this->scopeConfig->getValue(self::XML_PATH_PLUGIN_ACTIVE, ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+        return (bool) $this->scopeConfig->getValue(
+            self::XML_PATH_PLUGIN_ACTIVE,
+            ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+        );
     }
+
     /**
-     * Clear the necessary cache types
+     * Clear the necessary cache types.
      */
-    protected function clearCache()
+    protected function clearCache(): void
     {
-        // Get all cache types available from the cache type list
-        $cacheTypes = $this->cacheTypeList->getTypes();
-    
-        // Define valid cache types for clearing
         $validCacheTypes = ['config', 'block_html', 'full_page'];
-    
-        // Loop over valid cache types and clean them
+
         foreach ($validCacheTypes as $type) {
-            // Ensure the cache type exists before cleaning it
-            if (isset($cacheTypes[$type])) {
-                try {
-                    $this->cacheTypeList->cleanType($type);
-                } catch (\Exception $e) {
-                    $this->logger->debug("Error cleaning cache for type {$type}: " . $e->getMessage());
-                }
+            try {
+                $this->cacheTypeList->cleanType($type);
+            } catch (\Exception $e) {
+                $this->logger->debug("Error cleaning cache for type {$type}: " . $e->getMessage());
             }
         }
-    
-        // Clear all configuration-related cache tags
+
         try {
             $this->cacheManager->clean([Config::CACHE_TAG]);
         } catch (\Exception $e) {

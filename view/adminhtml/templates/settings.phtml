@@ -1,14 +1,14 @@
 <?php
-    $isLogged = $block->getData('isLogged');
-    $isActive = $block->getData('isActive');
-    $supportEmail = $block->getData('supportEmail');
-    $signUp = $block->getData('signUp');
-    $dashboardUrl = $block->getData('dashboardUrl');
-    
-    $products_incomplete = $block->getProducts('products');
-    $stepsCompleted = $block->getStepsCompleted('stepsCompleted');
+use Magento\Framework\Escaper;
 
-    
+$escaper = new Escaper();
+$isLogged = $block->getData('isLogged');
+$isActive = $block->getData('isActive');
+$supportEmail = $block->getData('supportEmail');
+$signUp = $block->getData('signUp');
+$dashboardUrl = $block->getData('dashboardUrl');
+$products_incomplete = $block->getProducts('products');
+$stepsCompleted = $block->getStepsCompleted('stepsCompleted');
 ?>
 <div class="nboxnow-shipping-method">
     <div class="setup">
@@ -17,70 +17,119 @@
                 <div id="image-logo"></div>
             </div>
             <div class="content-wrap">
-                <h2 class="title"><?= __('About') ?></h2>
-                <p class="body"><?= __("Transform your store’s shipping experience with Nbox Logistics! Our app seamlessly integrates with your account to provide fast, secure, and reliable delivery solutions—ensuring your customers receive their orders on time, every time. Elevate your business with a delivery service you and your customers can count on!") ?></p>
+                <h2 class="title"><?= $escaper->escapeHtml(__('About')) ?></h2>
+                <p class="body">
+                    <?= $escaper->escapeHtml(__("Transform your store’s shipping experience with Nbox Logistics! ")) ?>
+                    <?= $escaper->escapeHtml(__("Our app seamlessly integrates with ")) ?>
+                    <?= $escaper->escapeHtml(__("your account to provide fast, secure, ")) ?>
+                    <?= $escaper->escapeHtml(__("and reliable delivery solutions—ensuring ")) ?>
+                    <?= $escaper->escapeHtml(__("your customers receive their orders on time,")) ?>
+                    <?= $escaper->escapeHtml(__(" every time. Elevate your business with a delivery ")) ?>
+                    <?= $escaper->escapeHtml(__(" service you and your customers can count on!")) ?>
+                </p>
                 <div class="btn-wrap">
-                    <a class="button button-primary" href=<?php echo "mailto:$supportEmail" ?>><?= __('Contact support') ?></a>
+                    <a class="button button-primary" 
+                        href="mailto:<?= $escaper->escapeHtml($supportEmail) ?>">
+                        <?= $escaper->escapeHtml(__('Contact support')) ?>
+                    </a>
                 </div>
             </div>
         </div>
         <div class="guide">
             <div class="heading px-1">
-                <h2><?= __('Setup guide')  ?></h2>
-                <p><?= __('Follow this one-time set up guide to use NBOX Now shipment service.') ?></p>
+                <h2><?= $escaper->escapeHtml(__('Setup guide')) ?></h2>
+                <p>
+                    <?= $escaper->escapeHtml(__('Follow this one-time set up guide')) ?>
+                    <?= $escaper->escapeHtml(__(' to use NBOX Now shipment service.')) ?>
+                </p>
                 <div class="completion <?= $stepsCompleted >= 3 ? "success" : "warning" ?>">
-                    <span><?= $stepsCompleted ?></span><span> / 3 <?= __('completed')  ?></span>
+                    <span><?= $escaper->escapeHtml($stepsCompleted) ?></span>
+                    <span> / 3 <?= $escaper->escapeHtml(__('completed')) ?></span>
                 </div>
             </div>
             <div class="step">
                 <div class="title px-1">
-                    <h2><?= __('NBOX Now account')  ?></h2>
+                    <h2><?= $escaper->escapeHtml(__('NBOX Now account')) ?></h2>
                 </div>
                 <div class="body">
                     <div class="status">
-                        <input type="checkbox" <?php echo $isLogged ? "checked" : "" ?> readonly="true" disabled="true">
+                        <input 
+                            type="checkbox" <?= $isLogged ? "checked" : "" ?> 
+                            readonly="true" disabled="true">
                     </div>
                     <div class="inner">
-                        <h3><?= __('Login NBOX Now')  ?></h3>
-                        <p class="spacer-1"><?= __('Login on your account with us') ?></p>
-                        <?php if(!$isLogged) { ?>
+                        <h3><?= $escaper->escapeHtml(__('Login NBOX Now')) ?></h3>
+                        <p class="spacer-1"><?= $escaper->escapeHtml(__('Login on your account with us')) ?></p>
+                        <?php if (!$isLogged) { ?>
                             <div id="login-control">
-                                <button id="showLogin" class="button button-primary"><?= __('Login') ?></button>
-                                <a class="button" href="<?= $signUp ?>" target="_blank"><?= __('Sign up') ?></a>         
+                                <button id="showLogin" 
+                                    class="button button-primary">
+                                    <?= $escaper->escapeHtml(__('Login')) ?>
+                                </button>
+                                <a class="button" 
+                                    href="<?= $escaper->escapeHtml($signUp) ?>" 
+                                    target="_blank">
+                                    <?= $escaper->escapeHtml(__('Sign up')) ?>
+                                </a>         
                             </div>
-                        <?php }else{ ?>
-                            <form action="<?= $block->getUrl('nbox_shipping/settings/logout') ?>" method="POST">
-                                <input type="hidden" name="form_key" value="<?= $block->getFormKey() ?>" />
-                                <button type="submit"  class="button button-primary"><?= __("Logout") ?></button>
+                        <?php } else { ?>
+                            <form action="<?= $escaper->escapeHtml($block->getUrl('nbox_shipping/settings/logout')) ?>" 
+                                method="POST">
+                                <input type="hidden" 
+                                    name="form_key" 
+                                    value="<?= $escaper->escapeHtml($block->getFormKey()) ?>" />
+                                <button type="submit"  
+                                    class="button button-primary">
+                                    <?= $escaper->escapeHtml(__("Logout")) ?>
+                                </button>
                             </form>
-                            <a href="<?= $dashboardUrl ?>" target="_blank"><?= __('View Dashboard') ?></a>
+                            <a href="<?= $escaper->escapeHtml($dashboardUrl) ?>" 
+                                target="_blank"><?= $escaper->escapeHtml(__('View Dashboard')) ?>
+                            </a>
                         <?php } ?> 
                         <div id="login-control">
                             <div id="login-wrap" class="hide">
-                                <form id="loginFormNbox"  action="<?= $block->getUrl('nbox_shipping/settings/login') ?>" method="post">
-                                    <input type="hidden" class="admin__control-text" name="form_key" value="<?= $block->getFormKey() ?>" />
+                                <form id="loginFormNbox" 
+                                    action="<?= $escaper->escapeHtml(
+                                        $block->getUrl('nbox_shipping/settings/login')
+                                    ) ?>" 
+                                    method="post">
+                                    <input type="hidden" 
+                                        name="form_key" 
+                                        value="<?= $escaper->escapeHtml($block->getFormKey()) ?>" />
 
                                     <div class="admin__fieldset">
                                         <div class="form-group">
                                             <label for="username" class="admin__field-label-group">
-                                                <span><?= __('Email') ?></span>
+                                                <span><?= $escaper->escapeHtml(__('Email')) ?></span>
                                             </label>
                                             <div class="admin__field-control">
-                                                <input type="text" id="username" name="username" class="admin__control-text" required>
+                                                <input type="text" 
+                                                    id="username" 
+                                                    name="username" 
+                                                    class="admin__control-text" 
+                                                    required>
                                             </div>
                                         </div>
 
                                         <div class="">
                                             <label for="password" class="admin__field-label">
-                                                <span><?= __('Password') ?></span>
+                                                <span><?= $escaper->escapeHtml(__('Password')) ?></span>
                                             </label>
                                             <div class="admin__field-control">
-                                                <input type="password" id="password" name="password" class="admin__control-text" required>
+                                                <input type="password" 
+                                                    id="password" 
+                                                    name="password" 
+                                                    class="admin__control-text" 
+                                                    required>
                                             </div>
                                         </div>
 
                                         <div class="admin__actions spacer-2">
-                                            <button type="submit" class="action-primary"><?= __("Login") ?></button>
+                                            <button type="submit" 
+                                                class="action-primary">
+                                                <?= $escaper->escapeHtml(__("Login")) ?>
+                                            </button>
                                         </div>
                                     </div>
                                 </form>
@@ -91,39 +140,59 @@
             </div>
             <div class="step">
                 <div class="title px-1">
-                    <h2><?= __('Scan product dimensions') ?></h2>
+                    <h2><?= $escaper->escapeHtml(__('Scan product dimensions')) ?></h2>
                 </div>
                 <div class="body">
                     <div class="status">
-                        <input type="checkbox" <?= (count($products_incomplete) < 1) ? "checked" : "" ?> readonly="true" disabled="true">
+                        <input type="checkbox" <?= (count($products_incomplete) < 1) ? "checked" : "" ?> 
+                            readonly="true" 
+                            disabled="true">
                     </div>
                     <div class="inner">
-                        <h3><?= __('Get accurate shipping with product details' )?></h3>
-                        <?php if(count($products_incomplete) > 0) { ?>
-                            <p class="text-danger"><?= count($products_incomplete) . " " . __("product needs attention") ?></p>
-                            <button id="productView" type="button" class="button button-primary" data-toggle="show"><?= __('View products') ?></button>
+                        <h3><?= $escaper->escapeHtml(__('Get accurate shipping with product details')) ?></h3>
+                        <?php if (count($products_incomplete) > 0) { ?>
+                            <p class="text-danger">
+                                <?= count($products_incomplete) . " " .
+                                    $escaper->escapeHtml(__("product needs attention")) ?>
+                            </p>
+                            <button 
+                                id="productView" 
+                                type="button" 
+                                class="button button-primary" 
+                                data-toggle="show">
+                                <?= $escaper->escapeHtml(__('View products')) ?>
+                            </button>
                         <?php } else { ?>
-                            <p><?= __("Great news! All your products now include weight and dimensions, providing precise shipping rates for a smoother checkout experience") ?></p>
+                            <p>
+                                <?= $escaper->escapeHtml(__("Great news! All your products ")) ?>
+                                <?= $escaper->escapeHtml(__("now include weight and dimensions, ")) ?>
+                                <?= $escaper->escapeHtml(__("providing precise shipping rates ")) ?>
+                                <?= $escaper->escapeHtml(__("for a smoother checkout experience")) ?>
+                            </p>
                         <?php } ?>
                     </div>
                 </div>
                 <div id="product-list" class="product-list hide">
-                    <?php foreach($products_incomplete as $product){ ?>
+                    <?php foreach ($products_incomplete as $product) { ?>
                     <div class="product-item">
                         <div class="thumb-wrap">
-                            <a href="<?= $product['url'] ?>">
-                                <img src="<?= $product['image_url'] ?>"alt="<?= $product['name']?>">
+                            <a href="<?= $escaper->escapeHtml($product['url']) ?>">
+                                <img 
+                                    src="<?= $escaper->escapeHtml($product['image_url']) ?>" 
+                                    alt="<?= $escaper->escapeHtml($product['name']) ?>">
                             </a>
                         </div>
                         <div class="description">
-                            <a href="<?= $product['url'] ?>"><span class="label"><?= $product['name'] ?></span></a>
+                            <a href="<?= $escaper->escapeHtml($product['url']) ?>">
+                                <span class="label"><?= $escaper->escapeHtml($product['name']) ?></span>
+                            </a>
                             <p class="">
-                                <span><?= __('Missing info:') ?></span> 
-                                <?php if(!$product['has_weight']) { ?>
-                                    <span><?= __('Weight') ?></span>
+                                <span><?= $escaper->escapeHtml(__('Missing info:')) ?></span> 
+                                <?php if (!$product['has_weight']) { ?>
+                                    <span><?= $escaper->escapeHtml(__('Weight')) ?></span>
                                 <?php } ?>
-                                <?php if(!$product["has_dimensions"]) { ?>
-                                    <span><?= __('Dimensions') ?></span>
+                                <?php if (!$product["has_dimensions"]) { ?>
+                                    <span><?= $escaper->escapeHtml(__('Dimensions')) ?></span>
                                 <?php } ?>
                             </p>
                         </div>
@@ -133,26 +202,56 @@
             </div>
             <div class="step">
                 <div class="title px-1">
-                    <h2><?= __('Apply NBOX Now shipping method') ?></h2>
+                    <h2><?= $escaper->escapeHtml(__('Apply NBOX Now shipping method')) ?></h2>
                 </div>
                 <div class="body">
                     <div class="status">
-                        <input type="checkbox" <?php echo $isActive ? "checked" : "" ?> readonly="true" disabled="true">
+                        <input type="checkbox" <?= $isActive ? "checked" : "" ?> readonly="true" disabled="true">
                     </div>
                     <div class="inner">
-                        <h3><?= __("Click on Activate to enable NBOX Now shipping method.") ?></h3>
-                        <p><?= __("Get started with our shipping method by clicking the Activate button—it’s that simple!") ?></p>
-                        <p><?= __("Once activated, you can configure your preferred carriers directly in the Magento Admin Panel under Stores → Configuration → Sales → Shipping Methods → NBOX Shipping. Enable or disable carriers based on your needs to optimize your shipping process.") ?></p>
-                        <p><?= __("We’re here to help you streamline your shipping process effortlessly!") ?></p>
+                        <h3>
+                            <?= $escaper->escapeHtml(__("Click on Activate to enable NBOX")) ?>
+                            <?= $escaper->escapeHtml(__(" Now shipping method.")) ?>
+                        </h3>
+                        <p>
+                            <?= $escaper->escapeHtml(__("Get started with our shipping method by clicking ")) ?>
+                            <?= $escaper->escapeHtml(__("the Activate button—it’s that simple!")) ?></p>
+                        <p>
+                            <?= $escaper->escapeHtml(__("Once activated, you can configure your preferred ")) ?>
+                            <?= $escaper->escapeHtml(__("carriers directly in the Magento Admin Panel under ")) ?>
+                            <?= $escaper->escapeHtml(__("Stores → Configuration → Sales → ")) ?>
+                            <?= $escaper->escapeHtml(__("Shipping Methods → NBOX Shipping.")) ?>
+                            <?= $escaper->escapeHtml(__("Enable or disable carriers based on your needs ")) ?>
+                            <?= $escaper->escapeHtml(__("to optimize your shipping process.")) ?>
+                        </p>
 
-                        <form action="<?= $block->getUrl('nbox_shipping/settings/activation') ?>" method="POST">
-                            <input type="hidden" name="form_key" value="<?= $block->getFormKey() ?>" />
-                            <input type="hidden" name="isActive" value="<?= $isActive ?>" />
+                        <p>
+                            <?= $escaper->escapeHtml(__("We’re here to help you streamline your ")) ?>
+                            <?= $escaper->escapeHtml(__("shipping process effortlessly!")) ?>
+                        </p>
 
-                            <?php if($isActive) { ?>
-                                <button type="submit" class="button button-primary" data-toggle="show"><?= __("Deactivate") ?></button>
+                        <form 
+                            action="<?= $escaper->escapeHtml($block->getUrl('nbox_shipping/settings/activation')) ?>" 
+                            method="POST">
+                            <input type="hidden" 
+                                name="form_key" 
+                                value="<?= $escaper->escapeHtml($block->getFormKey()) ?>" />
+                            <input type="hidden" 
+                                name="isActive" 
+                                value="<?= $escaper->escapeHtml($isActive) ?>" />
+
+                            <?php if ($isActive) { ?>
+                                <button type="submit" 
+                                    class="button button-primary" 
+                                    data-toggle="show">
+                                    <?= $escaper->escapeHtml(__("Deactivate")) ?>
+                                </button>
                             <?php } else { ?>
-                                <button type="submit" class="button button-primary" data-toggle="show"><?= __("Activate") ?></button>
+                                <button type="submit" 
+                                    class="button button-primary" 
+                                    data-toggle="show">
+                                    <?= $escaper->escapeHtml(__("Activate")) ?>
+                                </button>
                             <?php } ?>
                         </form>
                     </div>
@@ -160,5 +259,4 @@
             </div>
         </div>
     </div>
-    
 </div>
