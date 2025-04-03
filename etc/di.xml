@@ -10,4 +10,24 @@ xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xs
     <type name="Magento\Store\Model\ResourceModel\StoreRepository">
         <plugin name="nbox_store_location_plugin" type="NBOX\Shipping\Plugin\StoreRepoPlugin" />
     </type>
+
+    <!-- Preference for NBOX\Shipping Carrier -->
+    <preference for="Magento\Shipping\Model\Carrier\AbstractCarrier" type="NBOX\Shipping\Model\Carrier\Nboxshipping" />
+
+    <!-- Define Nboxshipping Constructor Dependencies -->
+    <type name="NBOX\Shipping\Model\Carrier\Nboxshipping">
+        <arguments>
+            <argument name="scopeConfig" xsi:type="object">Magento\Framework\App\Config\ScopeConfigInterface</argument>
+            <argument name="rateErrorFactory" xsi:type="object">Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory</argument>
+            <argument name="logger" xsi:type="object">Psr\Log\LoggerInterface</argument>
+            <argument name="rateResultFactory" xsi:type="object">Magento\Shipping\Model\Rate\ResultFactory</argument>
+            <argument name="rateMethodFactory" xsi:type="object">Magento\Quote\Model\Quote\Address\RateResult\MethodFactory</argument>
+            <argument name="productRepository" xsi:type="object">Magento\Catalog\Model\ProductRepository</argument>
+            <argument name="configHelper" xsi:type="object">Nbox\Shipping\Helper\ConfigHelper</argument>
+            <argument name="nboxApi" xsi:type="object">Nbox\Shipping\Helper\NboxApi</argument>
+            <argument name="curl" xsi:type="object">Magento\Framework\HTTP\Client\Curl</argument>
+            <argument name="productSource" xsi:type="object">Nbox\Shipping\Helper\ProductSource</argument>
+            <argument name="converter" xsi:type="object">NBOX\Shipping\Utils\Converter</argument>
+        </arguments>
+    </type>
 </config>
