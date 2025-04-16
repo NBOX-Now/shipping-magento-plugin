@@ -1,5 +1,5 @@
 <?php
-namespace NBOX\Shipping\Block\Adminhtml\Settings;
+namespace Nbox\Shipping\Block\Adminhtml\Settings;
 
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
@@ -7,12 +7,12 @@ use Magento\Catalog\Helper\Image;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\UrlInterface;
 //
-use NBOX\Shipping\Utils\Constants;
-use NBOX\Shipping\Helper\ConfigHelper;
-use NBOX\Shipping\Helper\ProductHelper;
+use Nbox\Shipping\Utils\Constants;
+use Nbox\Shipping\Helper\ConfigHelper;
+use Nbox\Shipping\Helper\ProductHelper;
 
 /**
- * Admin settings block for NBOX Shipping
+ * Admin settings block for Nbox Shipping
  */
 class Index extends Template
 {

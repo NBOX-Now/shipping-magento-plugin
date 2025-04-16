@@ -1,5 +1,5 @@
 <?php
-namespace NBOX\Shipping\Helper;
+namespace Nbox\Shipping\Helper;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\App\Helper\AbstractHelper;

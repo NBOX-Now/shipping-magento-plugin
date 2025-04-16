@@ -1,6 +1,6 @@
 <?php
 
-namespace NBOX\Shipping\Setup\Patch\Data;
+namespace Nbox\Shipping\Setup\Patch\Data;
 
 use Magento\Eav\Setup\EavSetup;
 use Magento\Eav\Setup\EavSetupFactory;

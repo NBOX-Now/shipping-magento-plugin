@@ -1,6 +1,6 @@
 <?php
 
-namespace NBOX\Shipping\Utils;
+namespace Nbox\Shipping\Utils;
 
 /**
  * Converter class to handle weight unit conversions.

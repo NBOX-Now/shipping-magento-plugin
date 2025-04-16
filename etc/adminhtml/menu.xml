@@ -3,12 +3,12 @@
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
         <add 
-            id="NBOX_Shipping::main"
-            title="NBOX Shipping"
-            module="NBOX_Shipping"
+            id="Nbox_Shipping::main"
+            title="Nbox Shipping"
+            module="Nbox_Shipping"
             sortOrder="10"
             action="nbox_shipping/settings/index"
-            resource="NBOX_Shipping::settings"
+            resource="Nbox_Shipping::settings"
             
         />
     </menu>

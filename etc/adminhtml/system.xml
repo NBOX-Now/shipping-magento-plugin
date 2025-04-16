@@ -16,7 +16,7 @@
                 showInDefault="1" 
                 showInWebsite="1" 
                 showInStore="1">
-                <label>NBOX Shipping</label>
+                <label>Nbox Shipping</label>
                 <field id="active" 
                     translate="label" 
                     type="select" 

@@ -3,7 +3,7 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="admin">
         <route id="nbox_shipping" frontName="nbox_shipping">
-            <module name="NBOX_Shipping"/>
+            <module name="Nbox_Shipping"/>
         </route>
     </router>
 </config>

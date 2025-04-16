@@ -1,15 +1,15 @@
 <?php
-namespace NBOX\Shipping\Observer;
+namespace Nbox\Shipping\Observer;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Psr\Log\LoggerInterface;
-use NBOX\Shipping\Helper\StoreSource;
-use NBOX\Shipping\Helper\NboxApi;
+use Nbox\Shipping\Helper\StoreSource;
+use Nbox\Shipping\Helper\NboxApi;
 
 /**
  * Class ShippingOriginObserver
- * Observes shipping origin events and updates NBOX API with the shipping data.
+ * Observes shipping origin events and updates Nbox API with the shipping data.
  *
  */
 class ShippingOriginObserver implements ObserverInterface
@@ -47,7 +47,7 @@ class ShippingOriginObserver implements ObserverInterface
     }
 
     /**
-     * Execute the observer to update shipping origin data to NBOX API.
+     * Execute the observer to update shipping origin data to Nbox API.
      *
      * @param Observer $observer
      * @return void

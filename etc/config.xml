@@ -6,10 +6,10 @@
             <nboxshipping>
                 <active>1</active>
                 <sallowspecific>0</sallowspecific>
-                <model>NBOX\Shipping\Model\Carrier\Nboxshipping</model>
-                <name>NBOX</name>
+                <model>Nbox\Shipping\Model\Carrier\Nboxshipping</model>
+                <name>Nbox</name>
                 <handling_type>F</handling_type>
-                <title>NBOX Shipping</title>
+                <title>Nbox Shipping</title>
                 <type>I</type>
                 <specificerrmsg>This shipping method is not available right now.</specificerrmsg>
             </nboxshipping>

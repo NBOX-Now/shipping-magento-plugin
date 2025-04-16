@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace NBOX\Shipping\Model\Carrier;
+namespace Nbox\Shipping\Model\Carrier;
 
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Shipping\Model\Rate\Result;
@@ -22,7 +22,7 @@ use Nbox\Shipping\Helper\ConfigHelper;
 use Nbox\Shipping\Utils\Converter;
 
 /**
- * Custom shipping method for NBOX to calculate shipping rates based on weight and dimensions.
+ * Custom shipping method for Nbox to calculate shipping rates based on weight and dimensions.
  */
 class Nboxshipping extends AbstractCarrier implements CarrierInterface
 {
@@ -136,13 +136,13 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
     public function collectRates(RateRequest $request)
     {
         if (!$this->getConfigFlag('active') || !$this->configHelper->isPluginActive()) {
-            $this->_logger->debug("Stopped NBOX Method");
+            $this->_logger->debug("Stopped Nbox Method");
             return false;
         }
 
         /**
          * Start custom script
-         * Call NBOX Now Rates API here
+         * Call Nbox Now Rates API here
          */
 
         $items = $request->getAllItems();

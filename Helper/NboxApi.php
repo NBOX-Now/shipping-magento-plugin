@@ -1,16 +1,16 @@
 <?php
 
-namespace NBOX\Shipping\Helper;
+namespace Nbox\Shipping\Helper;
 
 use Psr\Log\LoggerInterface;
 use Magento\Framework\App\ObjectManager;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use NBOX\Shipping\Utils\Constants;
-use NBOX\Shipping\Exception\ApiException; // Custom Exception for API Errors
+use Nbox\Shipping\Utils\Constants;
+use Nbox\Shipping\Exception\ApiException; // Custom Exception for API Errors
 
 /**
- * NboxApi is responsible for making API requests to NBOX services such as login, activation, rates, etc.
+ * NboxApi is responsible for making API requests to Nbox services such as login, activation, rates, etc.
  */
 class NboxApi
 {
@@ -92,11 +92,11 @@ class NboxApi
             return json_decode($body, true);
         } catch (RequestException $e) {
             // Log HTTP request-specific errors
-            $this->getLogger()->debug("NBOX API Error: " . $e->getMessage());
+            $this->getLogger()->debug("Nbox API Error: " . $e->getMessage());
             return ["status" => "failed", "message" => $e->getMessage()];
         } catch (\Exception $e) {
             // Log generic errors
-            $this->getLogger()->debug("NBOX API Error: " . $e->getMessage());
+            $this->getLogger()->debug("Nbox API Error: " . $e->getMessage());
             return ["status" => "failed", "message" => $e->getMessage()];
         }
     }

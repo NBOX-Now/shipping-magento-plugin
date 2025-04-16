@@ -1,6 +1,6 @@
 {
   "name": "nbox/shipping",
-  "description": "NBOX Shipping module for magento",
+  "description": "Nbox Shipping module for magento",
   "type": "magento2-module",
   "version": "1.0.0",
   "license": [
@@ -17,7 +17,7 @@
       "registration.php"
     ],
     "psr-4": {
-      "NBOX\\Shipping\\": ""
+      "Nbox\\Shipping\\": ""
     }
   }
 }

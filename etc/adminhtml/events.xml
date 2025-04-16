@@ -2,6 +2,6 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
     xsi:noNamespaceSchemaLocation="urn:magento:framework/Event/etc/events.xsd">
     <event name="admin_system_config_changed_section_shipping">
-        <observer name="nbox_shipping_origin_update" instance="NBOX\Shipping\Observer\ShippingOriginObserver" />
+        <observer name="nbox_shipping_origin_update" instance="Nbox\Shipping\Observer\ShippingOriginObserver" />
     </event>
 </config>

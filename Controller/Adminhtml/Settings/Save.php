@@ -1,19 +1,19 @@
 <?php
-namespace NBOX\Shipping\Controller\Adminhtml\Settings;
+namespace Nbox\Shipping\Controller\Adminhtml\Settings;
 
 use Magento\Backend\App\Action;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\ResultFactory;
 
 /**
- * Save action for the NBOX Shipping settings page
+ * Save action for the Nbox Shipping settings page
  */
 class Save extends Action implements HttpPostActionInterface
 {
     /**
      * Admin resource for settings access
      */
-    public const ADMIN_RESOURCE = 'NBOX_Shipping::settings';
+    public const ADMIN_RESOURCE = 'Nbox_Shipping::settings';
 
     /**
      * Execute the save action

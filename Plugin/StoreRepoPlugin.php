@@ -1,12 +1,12 @@
 <?php
 
-namespace NBOX\Shipping\Plugin;
+namespace Nbox\Shipping\Plugin;
 
 use Magento\Store\Model\ResourceModel\StoreRepository;
 use Magento\Store\Api\Data\StoreInterface;
 use Psr\Log\LoggerInterface;
-use NBOX\Shipping\Helper\StoreSource;
-use NBOX\Shipping\Helper\NboxApi;
+use Nbox\Shipping\Helper\StoreSource;
+use Nbox\Shipping\Helper\NboxApi;
 
 /**
  * Plugin for StoreRepository::save()

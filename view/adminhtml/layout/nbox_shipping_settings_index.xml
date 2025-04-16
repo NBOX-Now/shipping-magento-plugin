@@ -2,14 +2,14 @@
 <layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
         xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout.xsd">
     <head>
-        <css src="NBOX_Shipping::css/settings.css"/>
-        <script src="NBOX_Shipping::js/settings.js"/>
+        <css src="Nbox_Shipping::css/settings.css"/>
+        <script src="Nbox_Shipping::js/settings.js"/>
     </head>
     <body>
         <referenceContainer name="content">
-            <block class="NBOX\Shipping\Block\Adminhtml\Settings\Index" 
+            <block class="Nbox\Shipping\Block\Adminhtml\Settings\Index" 
                 name="nbox_shipping_settings_block" 
-                template="NBOX_Shipping::settings.phtml"/>
+                template="Nbox_Shipping::settings.phtml"/>
         </referenceContainer>
     </body>
 </layout>

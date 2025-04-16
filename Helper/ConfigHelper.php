@@ -11,7 +11,7 @@ use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * Helper class for managing configuration settings of NBOX Shipping module.
+ * Helper class for managing configuration settings of Nbox Shipping module.
  */
 class ConfigHelper
 {

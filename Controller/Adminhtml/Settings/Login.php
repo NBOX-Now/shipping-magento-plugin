@@ -1,6 +1,6 @@
 <?php
 
-namespace NBOX\Shipping\Controller\Adminhtml\Settings;
+namespace Nbox\Shipping\Controller\Adminhtml\Settings;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
@@ -16,7 +16,7 @@ use Nbox\Shipping\Helper\NboxApi;
 use Nbox\Shipping\Helper\ConfigHelper;
 
 /**
- * Login action for the NBOX Shipping settings page.
+ * Login action for the Nbox Shipping settings page.
  */
 class Login extends Action implements HttpPostActionInterface
 {

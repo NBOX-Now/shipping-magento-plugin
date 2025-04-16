@@ -1,6 +1,6 @@
 <?php
 
-namespace NBOX\Shipping\Controller\Adminhtml\Settings;
+namespace Nbox\Shipping\Controller\Adminhtml\Settings;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
@@ -9,7 +9,7 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Nbox\Shipping\Helper\ConfigHelper;
 
 /**
- * Logout action for the NBOX Shipping settings page.
+ * Logout action for the Nbox Shipping settings page.
  */
 class Logout extends Action implements HttpPostActionInterface
 {
