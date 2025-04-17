@@ -202,6 +202,12 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
         ];
 
         $response = $this->nboxApi->getRates($requestData);
+
+        if (!isset($response['rates']) || !is_array($response['rates']) || empty($response['rates'])) {
+            $this->_logger->debug("NboxShipping: No rates returned from API.");
+            return false;
+        }
+
         $result = $this->rateResultFactory->create();
 
         foreach ($response['rates'] as $item) {
