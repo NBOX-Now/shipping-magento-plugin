@@ -4,7 +4,7 @@
     <acl>
         <resources>
             <resource id="Magento_Backend::admin">
-                <resource id="NboxShipping::settings" title="Nbox Shipping Settings" translate="title" sortOrder="10">
+                <resource id="Nbox_Shipping::settings" title="Nbox Shipping Settings" translate="title" sortOrder="10">
                     <resource id="Nbox_Shipping::manage" title="Manage Settings"/>
                 </resource>
             </resource>
