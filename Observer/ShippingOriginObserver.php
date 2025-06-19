@@ -6,6 +6,7 @@ use Magento\Framework\Event\ObserverInterface;
 use Psr\Log\LoggerInterface;
 use Nbox\Shipping\Helper\StoreSource;
 use Nbox\Shipping\Helper\NboxApi;
+use Nbox\Shipping\Helper\LocationFormatter;
 
 /**
  * Class ShippingOriginObserver
@@ -30,20 +31,28 @@ class ShippingOriginObserver implements ObserverInterface
     protected $nboxApi;
 
     /**
+     * @var LocationFormatter
+     */
+    protected $locationFormatter;
+
+    /**
      * ShippingOriginObserver constructor.
      *
      * @param LoggerInterface $logger
      * @param StoreSource $storeSource
      * @param NboxApi $nboxApi
+     * @param LocationFormatter $locationFormatter
      */
     public function __construct(
         LoggerInterface $logger,
         StoreSource $storeSource,
-        NboxApi $nboxApi
+        NboxApi $nboxApi,
+        LocationFormatter $locationFormatter
     ) {
         $this->logger = $logger;
         $this->storeSource = $storeSource;
         $this->nboxApi = $nboxApi;
+        $this->locationFormatter = $locationFormatter;
     }
 
     /**
@@ -56,30 +65,21 @@ class ShippingOriginObserver implements ObserverInterface
     {
         $this->logger->info('OBSERVER ACTIVATED: ');
         
-        // Get all shipping origins from StoreSource
-        $stores = $this->storeSource->getStoreShippingOrigins();
-        $store = $stores[0];
-
-        $data = [
-            "locations" => [[
-                "id"           => $store["store_code"],
-                "name"         => $store["store_name"],
-                "address"      => $store["address"],
-                "city"         => $store["city"],
-                "countryCode"  => $store["country_code"],
-                "country"      => $store["country_name"],
-                "state"        => $store["state"],
-                "zip"          => $store["zip"],
-                "phone"        => $store['phone']
-            ]]
-        ];
-
-        $this->logger->info('Shipping Origin Data: ' . json_encode($data));
-        
         try {
+            // Get formatted locations using LocationFormatter
+            $locations = $this->locationFormatter->getFormattedLocations();
+            
+            $data = [
+                "locations" => $locations
+            ];
+
+            $this->logger->info('Shipping Origin Data: ' . json_encode($data));
+            
             $this->nboxApi->locations($data);
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            $this->logger->error("Error getting formatted locations: " . $e->getMessage());
         } catch (\Exception $e) {
-            $this->logger->error("Error on locations: " . $e->getMessage());
+            $this->logger->error("Error on locations API call: " . $e->getMessage());
         }
     }
 }
