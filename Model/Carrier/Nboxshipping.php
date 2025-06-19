@@ -20,6 +20,7 @@ use Nbox\Shipping\Helper\ProductSource;
 use Nbox\Shipping\Helper\NboxApi;
 use Nbox\Shipping\Helper\ConfigHelper;
 use Nbox\Shipping\Utils\Converter;
+use Nbox\Shipping\Service\DataFormatter;
 
 /**
  * Custom shipping method for Nbox to calculate shipping rates based on weight and dimensions.
@@ -72,6 +73,11 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
     protected $converter;
 
     /**
+     * @var DataFormatter
+     */
+    protected $dataFormatter;
+
+    /**
      * @var string
      */
     protected $_code = 'nboxshipping';
@@ -90,6 +96,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
      * @param Curl $curl
      * @param ProductSource $productSource
      * @param Converter $converter
+     * @param DataFormatter $dataFormatter
      * @param array $data
      */
     public function __construct(
@@ -104,6 +111,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
         Curl $curl,
         ProductSource $productSource,
         Converter $converter, // Added the Converter dependency
+        DataFormatter $dataFormatter,
         array $data = []
     ) {
         $this->rateResultFactory = $rateResultFactory;
@@ -114,6 +122,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
         $this->_curl = $curl;
         $this->productSource = $productSource;
         $this->converter = $converter; // Set the converter instance
+        $this->dataFormatter = $dataFormatter;
         parent::__construct($scopeConfig, $rateErrorFactory, $logger, $data);
     }
 
@@ -146,60 +155,37 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
          */
 
         $items = $request->getAllItems();
-        $origin = null;
+        
+        // Use DataFormatter service to format addresses and products
+        $origin = $this->dataFormatter->formatOriginAddress();
+        $destination = $this->dataFormatter->formatDestinationFromRateRequest($request);
+        $products = $this->dataFormatter->formatProductsFromQuoteItems($items);
+        
+        // Calculate totals from products
         $totalVolume = 0;
-        // Prepare volume
-        foreach ($items as $item) {
-            $product = $this->productRepository->getById($item->getProduct()->getId());
-            $sku = $product->getSku();
-
-            // Get sources dynamically
-            $origin = $this->productSource->getProductSources($sku);
-
-            if ($item->getProductType() == Type::TYPE_SIMPLE) {
-                $length = $product->getCustomAttribute('length')
-                    ? $product->getCustomAttribute('length')->getValue()
-                    : 0;
-                $width = $product->getCustomAttribute('width')
-                    ? $product->getCustomAttribute('width')->getValue()
-                    : 0;
-                $height = $product->getCustomAttribute('height')
-                    ? $product->getCustomAttribute('height')->getValue()
-                    : 0;
-
-                $dimensions[] = [
-                    'length' => $length,
-                    'width' => $width,
-                    'height' => $height
-                ];
-                $totalVolume += ($length * $width * $height);
-            }
+        $totalWeight = 0;
+        foreach ($products as $product) {
+            $totalVolume += $product['volume'] * $product['quantity'];
+            $totalWeight += ($product['grams'] / 1000) * $product['quantity']; // Convert grams to kg
+        }
+        
+        // Fallback to package weight if products don't have weight
+        if ($totalWeight == 0) {
+            $packageWeight = $request->getPackageWeight();
+            $weightUnit = $this->_scopeConfig->getValue('general/locale/weight_unit', ScopeInterface::SCOPE_STORE);
+            $totalWeight = $this->converter->convertToKg($packageWeight, $weightUnit);
         }
 
-        // Prepare weight
-        $weight = $request->getPackageWeight();
-        $weightUnit = $this->_scopeConfig->getValue('general/locale/weight_unit', ScopeInterface::SCOPE_STORE);
-        $weight = $this->converter->convertToKg($weight, $weightUnit); // Use the instance method here
-
         $requestData = [
-            'origin' => [
-                "address" => $this->_scopeConfig->getValue('shipping/origin/region_id', ScopeInterface::SCOPE_STORE),
-                "city" => $this->_scopeConfig->getValue('shipping/origin/city', ScopeInterface::SCOPE_STORE),
-                "zip" => $this->_scopeConfig->getValue('shipping/origin/postcode', ScopeInterface::SCOPE_STORE),
-                "countryCode" => $this->_scopeConfig->getValue(
-                    'shipping/origin/country_id',
-                    ScopeInterface::SCOPE_STORE
-                ),
-            ],
-            'destination' => [
-                "address" => $request->getDestStreet(),
-                "city" => $request->getDestCity(),
-                "zip" => $request->getDestPostcode(),
-                "countryCode" => $request->getDestCountryId(),
-            ],
-            'weight' => $weight,
+            'origin' => $origin,
+            'destination' => $destination,
+            'products' => $products,
+            'weight' => $totalWeight,
             'volume' => $totalVolume,
         ];
+        
+        // Debug logging
+        $this->_logger->debug("Nbox Rate Request Data:", $requestData);
 
         $response = $this->nboxApi->getRates($requestData);
 
