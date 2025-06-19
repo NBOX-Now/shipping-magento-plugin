@@ -14,6 +14,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Nbox\Shipping\Helper\StoreSource;
 use Nbox\Shipping\Helper\NboxApi;
 use Nbox\Shipping\Helper\ConfigHelper;
+use Nbox\Shipping\Helper\LocationFormatter;
 
 /**
  * Activation action for the Nbox Shipping settings page.
@@ -61,6 +62,11 @@ class Activation extends Action implements HttpPostActionInterface
     protected $nboxApi;
 
     /**
+     * @var LocationFormatter
+     */
+    protected $locationFormatter;
+
+    /**
      * Activation constructor.
      *
      * @param Context $context
@@ -72,6 +78,7 @@ class Activation extends Action implements HttpPostActionInterface
      * @param SessionManagerInterface $session
      * @param ScopeConfigInterface $scopeConfig
      * @param NboxApi $nboxApi
+     * @param LocationFormatter $locationFormatter
      */
     public function __construct(
         Context $context,
@@ -82,7 +89,8 @@ class Activation extends Action implements HttpPostActionInterface
         StoreSource $storeSource,
         SessionManagerInterface $session,
         ScopeConfigInterface $scopeConfig,
-        NboxApi $nboxApi
+        NboxApi $nboxApi,
+        LocationFormatter $locationFormatter
     ) {
         parent::__construct($context);
         $this->resultRedirectFactory = $resultRedirectFactory;
@@ -93,6 +101,7 @@ class Activation extends Action implements HttpPostActionInterface
         $this->scopeConfig = $scopeConfig;
         $this->storeSource = $storeSource;
         $this->nboxApi = $nboxApi;
+        $this->locationFormatter = $locationFormatter;
     }
 
     /**
@@ -106,24 +115,18 @@ class Activation extends Action implements HttpPostActionInterface
         $activate = (int) $this->request->getParam('isActive');  // Use (int) instead of intval()
         $activateBoolean = (bool) $activate;
 
-        // Get store details from Magento setup
-        $stores = $this->storeSource->getStoreShippingOrigins();
-        $store = $stores[0];
+        try {
+            // Get formatted locations using LocationFormatter
+            $locations = $this->locationFormatter->getFormattedLocations();
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+            return $this->resultRedirectFactory->create()->setPath('nbox_shipping/settings/index');
+        }
 
         // Prepare request data for the API
         $requestData = [
             "activate"  => !$activateBoolean,
-            "locations" => [[
-                "id"           => $store["store_code"],
-                "name"         => $store["store_name"],
-                "address"      => $store["address"],
-                "city"         => $store["city"],
-                "countryCode"  => $store["country_code"],
-                "country"      => $store["country_name"],
-                "state"        => $store["state"],
-                "zip"          => $store["zip"],
-                "phone"        => $store['phone']
-            ]]
+            "locations" => $locations
         ];
 
         // Call your API for activation/deactivation

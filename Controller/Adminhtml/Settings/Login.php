@@ -14,6 +14,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Nbox\Shipping\Helper\StoreSource;
 use Nbox\Shipping\Helper\NboxApi;
 use Nbox\Shipping\Helper\ConfigHelper;
+use Nbox\Shipping\Helper\LocationFormatter;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -62,6 +63,11 @@ class Login extends Action implements HttpPostActionInterface
     protected $nboxApi;
 
     /**
+     * @var LocationFormatter
+     */
+    protected $locationFormatter;
+
+    /**
      * @var LoggerInterface
      */
     protected $logger;
@@ -78,6 +84,7 @@ class Login extends Action implements HttpPostActionInterface
      * @param SessionManagerInterface $session
      * @param ScopeConfigInterface $scopeConfig
      * @param NboxApi $nboxApi
+     * @param LocationFormatter $locationFormatter
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -90,6 +97,7 @@ class Login extends Action implements HttpPostActionInterface
         SessionManagerInterface $session,
         ScopeConfigInterface $scopeConfig,
         NboxApi $nboxApi,
+        LocationFormatter $locationFormatter,
         LoggerInterface $logger
     ) {
         parent::__construct($context);
@@ -101,6 +109,7 @@ class Login extends Action implements HttpPostActionInterface
         $this->scopeConfig = $scopeConfig;
         $this->storeSource = $storeSource;
         $this->nboxApi = $nboxApi;
+        $this->locationFormatter = $locationFormatter;
         $this->logger = $logger;
     }
 
@@ -115,36 +124,18 @@ class Login extends Action implements HttpPostActionInterface
         $username = $this->request->getParam('username');
         $password = $this->request->getParam('password');
 
-        // Get shop details from Magento setup
-        $stores = $this->storeSource->getStoreShippingOrigins();
-
         if (!$username || !$password) {
             $this->messageManager->addErrorMessage(__('Invalid credentials.'));
             return $this->resultRedirectFactory->create()->setPath('nbox_shipping/settings/index');
         }
 
-        if (empty($stores)) {
-            $this->messageManager->addErrorMessage(__('No store configurations found.'));
+        try {
+            // Get formatted locations and primary store using LocationFormatter
+            $locations = $this->locationFormatter->getFormattedLocations();
+            $primaryStore = $this->locationFormatter->getPrimaryStore();
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
             return $this->resultRedirectFactory->create()->setPath('nbox_shipping/settings/index');
-        }
-
-        // Use first store for main shop information
-        $primaryStore = $stores[0];
-
-        // Build locations array for all stores
-        $locations = [];
-        foreach ($stores as $store) {
-            $locations[] = [
-                "refId"        => $store["store_code"],
-                "refName"      => $store["store_name"] . " (" . $store["store_code"] . ")",
-                "address"      => $store["address"],
-                "city"         => $store["city"],
-                "countryCode"  => $store["country_code"],
-                "country"      => $store["country_name"],
-                "state"        => $store["state"],
-                "zip"          => $store["zip"],
-                "phone"        => $store['phone']
-            ];
         }
 
         // Prepare request data for API login
