@@ -5,12 +5,12 @@ namespace Nbox\Shipping\Plugin;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Catalog\Api\ProductRepositoryInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Store\Model\ScopeInterface;
 use Nbox\Shipping\Helper\StoreSource;
 use Nbox\Shipping\Helper\NboxApi;
 use Nbox\Shipping\Utils\Converter;
+use Nbox\Shipping\Service\DataFormatter;
 
 /**
  * Class OrderPlugin
@@ -27,11 +27,6 @@ class OrderPlugin
      * @var ScopeConfigInterface
      */
     protected $storeConfig;
-
-    /**
-     * @var ProductRepositoryInterface
-     */
-    protected $productRepository;
 
     /**
      * @var LoggerInterface
@@ -54,32 +49,37 @@ class OrderPlugin
     protected $converter;
 
     /**
+     * @var DataFormatter
+     */
+    protected $dataFormatter;
+
+    /**
      * OrderPlugin constructor.
      *
      * @param StoreManagerInterface $storeManager
      * @param ScopeConfigInterface $storeConfig
-     * @param ProductRepositoryInterface $productRepository
      * @param LoggerInterface $logger
      * @param StoreSource $storeSource
      * @param NboxApi $nboxApi
      * @param Converter $converter
+     * @param DataFormatter $dataFormatter
      */
     public function __construct(
         StoreManagerInterface $storeManager,
         ScopeConfigInterface $storeConfig,
-        ProductRepositoryInterface $productRepository,
         LoggerInterface $logger,
         StoreSource $storeSource,
         NboxApi $nboxApi,
-        Converter $converter
+        Converter $converter,
+        DataFormatter $dataFormatter
     ) {
         $this->storeManager = $storeManager;
         $this->storeConfig = $storeConfig;
-        $this->productRepository = $productRepository;
         $this->logger = $logger;
         $this->storeSource = $storeSource;
         $this->nboxApi = $nboxApi;
         $this->converter = $converter;
+        $this->dataFormatter = $dataFormatter;
     }
 
     /**
@@ -187,49 +187,14 @@ class OrderPlugin
                 "email"           => $subject->getCustomerEmail(),
                 "phone"           => $shippingAddress ? $shippingAddress->getTelephone() : '',
             ],
-            'origin' => [
-                "address" => $this->storeConfig->getValue('shipping/origin/region_id', ScopeInterface::SCOPE_STORE),
-                "city" => $this->storeConfig->getValue('shipping/origin/city', ScopeInterface::SCOPE_STORE),
-                "zip" => $this->storeConfig->getValue('shipping/origin/postcode', ScopeInterface::SCOPE_STORE),
-                "countryCode" => $this->storeConfig->getValue(
-                    'shipping/origin/country_id',
-                    ScopeInterface::SCOPE_STORE
-                ),
-            ],
-            "destination" => [
-                "address"         => $shippingAddress ? implode(" ", $shippingAddress->getStreet()) : '',
-                "city"            => $shippingAddress ? $shippingAddress->getCity() : '',
-                "state"           => $shippingAddress ? $shippingAddress->getRegion() : '',
-                "countryCode"     => $shippingAddress ? $shippingAddress->getCountryId() : '',
-                "zip"             => $shippingAddress ? $shippingAddress->getPostcode() : '',
-                "longitude"       => null,
-                "latitude"        => null,
-            ],
-            "products" => [],
+            'origin' => $this->dataFormatter->formatOriginAddress($subject->getStoreId()),
+            "destination" => $this->dataFormatter->formatDestinationFromOrderAddress($shippingAddress),
+            "products" => $this->dataFormatter->formatProductsFromOrderItems(
+                $subject->getAllVisibleItems(),
+                $subject->getOrderCurrencyCode(),
+                $subject->getStoreId()
+            ),
         ];
-
-        foreach ($subject->getAllVisibleItems() as $item) {
-            $product = $this->productRepository->getById($item->getProductId());
-            $weightUnit = $this->storeConfig->getValue('general/locale/weight_unit', ScopeInterface::SCOPE_STORE);
-            
-            // Convert weight and dimensions
-            $weight = $product->getWeight(); // Assuming Magento uses grams by default
-            $length = $product->getCustomAttribute('length') ? $product->getCustomAttribute('length')->getValue() : 0;
-            $width  = $product->getCustomAttribute('width') ? $product->getCustomAttribute('width')->getValue() : 0;
-            $height = $product->getCustomAttribute('height') ? $product->getCustomAttribute('height')->getValue() : 0;
-
-            $data["products"][] = [
-                "name"      => $item->getName(),
-                "quantity"  => (float) $item->getQtyOrdered(),
-                "price"     => (float) $item->getPrice(),
-                "grams"     => $this->converter->convertToGrams((float) $weight, $weightUnit),
-                "length"    => (float) $length,
-                "width"     => (float) $width,
-                "height"    => (float)$height,
-                "volume"    => (float) ($length * $width * $height),
-                "currency"  => $subject->getOrderCurrencyCode(),
-            ];
-        }
         return $data;
     }
 }
