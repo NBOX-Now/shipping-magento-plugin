@@ -7,6 +7,7 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Nbox\Shipping\Helper\ConfigHelper;
+use Nbox\Shipping\Helper\NboxApi;
 
 /**
  * Logout action for the Nbox Shipping settings page.
@@ -28,20 +29,30 @@ class Logout extends Action implements HttpPostActionInterface
     protected $messageManager;
 
     /**
+     * NboxApi instance for making API calls.
+     *
+     * @var NboxApi
+     */
+    protected $nboxApi;
+
+    /**
      * Logout constructor.
      *
      * @param Context $context
      * @param ConfigHelper $configHelper
      * @param ManagerInterface $messageManager
+     * @param NboxApi $nboxApi
      */
     public function __construct(
         Context $context,
         ConfigHelper $configHelper,
-        ManagerInterface $messageManager
+        ManagerInterface $messageManager,
+        NboxApi $nboxApi
     ) {
         parent::__construct($context);
         $this->configHelper = $configHelper;
         $this->messageManager = $messageManager;
+        $this->nboxApi = $nboxApi;
     }
 
     /**
@@ -51,14 +62,30 @@ class Logout extends Action implements HttpPostActionInterface
      */
     public function execute()
     {
-        // Delete API token and check response status
-        $response = $this->configHelper->deleteApiToken();
+        // First, deactivate the service via API
+        $deactivateResponse = $this->nboxApi->deactivate();
         
-        // Add success or error message based on the response
-        if ($response["status"] === "success") {
+        // Set plugin inactive locally regardless of API response
+        $this->configHelper->setPluginActive(false);
+        
+        // Delete API token and check response status
+        $tokenResponse = $this->configHelper->deleteApiToken();
+        
+        // Add success or error message based on both responses
+        if ($deactivateResponse["status"] === "success" && $tokenResponse["status"] === "success") {
             $this->messageManager->addSuccessMessage(__('Logout successful'));
         } else {
-            $this->messageManager->addErrorMessage($response['message'] ?? __('Logout failed'));
+            // Show specific error messages
+            if ($deactivateResponse["status"] !== "success") {
+                $this->messageManager->addErrorMessage(
+                    $deactivateResponse['message'] ?? __('Deactivation failed')
+                );
+            }
+            if ($tokenResponse["status"] !== "success") {
+                $this->messageManager->addErrorMessage(
+                    $tokenResponse['message'] ?? __('Token deletion failed')
+                );
+            }
         }
 
         // Redirect to settings page

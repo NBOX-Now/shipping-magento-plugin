@@ -198,4 +198,17 @@ class NboxApi
     {
         return $this->makePostRequest(Constants::NBOX_LOCATIONS, $requestData);
     }
+
+    /**
+     * Deactivates the service by sending a POST request to the activation API with activate=false.
+     *
+     * @return array The decoded response from the deactivation API.
+     */
+    public function deactivate()
+    {
+        $requestData = [
+            "activate" => false
+        ];
+        return $this->makePostRequest(Constants::NBOX_ACTIVATION, $requestData);
+    }
 }
