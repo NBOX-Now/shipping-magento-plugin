@@ -72,7 +72,11 @@ class StoreSource
             $shippingOrigins[] = [
                 'website_id'   => $store->getWebsiteId(),
                 'store_id'     => $store->getId(),
-                'store_name'   => $store->getName(),
+                'store_name'   => $this->scopeConfig->getValue(
+                    'general/store_information/name',
+                    ScopeInterface::SCOPE_STORES,
+                    $storeId
+                ),
                 'store_code'   => $store->getCode(),
                 'store_url'    => $storeUrl,
                 'store_domain' => $storeDomain,
