@@ -14,6 +14,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Nbox\Shipping\Helper\StoreSource;
 use Nbox\Shipping\Helper\NboxApi;
 use Nbox\Shipping\Helper\ConfigHelper;
+use Psr\Log\LoggerInterface;
 
 /**
  * Login action for the Nbox Shipping settings page.
@@ -61,6 +62,11 @@ class Login extends Action implements HttpPostActionInterface
     protected $nboxApi;
 
     /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * Login constructor.
      *
      * @param Context $context
@@ -72,6 +78,7 @@ class Login extends Action implements HttpPostActionInterface
      * @param SessionManagerInterface $session
      * @param ScopeConfigInterface $scopeConfig
      * @param NboxApi $nboxApi
+     * @param LoggerInterface $logger
      */
     public function __construct(
         Context $context,
@@ -82,7 +89,8 @@ class Login extends Action implements HttpPostActionInterface
         StoreSource $storeSource,
         SessionManagerInterface $session,
         ScopeConfigInterface $scopeConfig,
-        NboxApi $nboxApi
+        NboxApi $nboxApi,
+        LoggerInterface $logger
     ) {
         parent::__construct($context);
         $this->resultRedirectFactory = $resultRedirectFactory;
@@ -93,6 +101,7 @@ class Login extends Action implements HttpPostActionInterface
         $this->scopeConfig = $scopeConfig;
         $this->storeSource = $storeSource;
         $this->nboxApi = $nboxApi;
+        $this->logger = $logger;
     }
 
     /**
@@ -108,24 +117,26 @@ class Login extends Action implements HttpPostActionInterface
 
         // Get shop details from Magento setup
         $stores = $this->storeSource->getStoreShippingOrigins();
-        $store = $stores[0];
 
         if (!$username || !$password) {
             $this->messageManager->addErrorMessage(__('Invalid credentials.'));
             return $this->resultRedirectFactory->create()->setPath('nbox_shipping/settings/index');
         }
 
-        // Prepare request data for API login
-        $requestData = [
-            "email"     => $username,
-            "password"  => $password,
-            "name"      => $store["store_name"],
-            "shopId"    => $store["store_domain"],
-            "url"       => $store["store_url"],
-            "platform"  => "magento",
-            "locations" => [[
-                "id"           => $store["store_code"],
-                "name"         => $store["store_name"],
+        if (empty($stores)) {
+            $this->messageManager->addErrorMessage(__('No store configurations found.'));
+            return $this->resultRedirectFactory->create()->setPath('nbox_shipping/settings/index');
+        }
+
+        // Use first store for main shop information
+        $primaryStore = $stores[0];
+
+        // Build locations array for all stores
+        $locations = [];
+        foreach ($stores as $store) {
+            $locations[] = [
+                "refId"        => $store["store_code"],
+                "refName"      => $store["store_name"] . " (" . $store["store_code"] . ")",
                 "address"      => $store["address"],
                 "city"         => $store["city"],
                 "countryCode"  => $store["country_code"],
@@ -133,8 +144,22 @@ class Login extends Action implements HttpPostActionInterface
                 "state"        => $store["state"],
                 "zip"          => $store["zip"],
                 "phone"        => $store['phone']
-            ]]
+            ];
+        }
+
+        // Prepare request data for API login
+        $requestData = [
+            "email"     => $username,
+            "password"  => $password,
+            "name"      => $primaryStore["store_name"],
+            "shopId"    => $primaryStore["store_domain"],
+            "url"       => $primaryStore["store_url"],
+            "platform"  => "magento",
+            "locations" => $locations
         ];
+
+        // Log the payload for debugging
+        $this->logger->info('NBOX Login Payload: ' . json_encode($requestData, JSON_PRETTY_PRINT));
 
         // Call your API for authentication
         $response = $this->nboxApi->login($requestData);
