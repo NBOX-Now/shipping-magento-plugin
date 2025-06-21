@@ -173,7 +173,7 @@ class StoreSource
                 ScopeInterface::SCOPE_STORES,
                 $storeId
             ),
-            'country_code' => $this->scopeConfig->getValue(
+            'country_code' => $countryCode = $this->scopeConfig->getValue(
                 'shipping/origin/country_id',
                 ScopeInterface::SCOPE_STORES,
                 $storeId

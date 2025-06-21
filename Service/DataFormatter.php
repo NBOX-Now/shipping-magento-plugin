@@ -204,14 +204,14 @@ class DataFormatter
     {
         try {
             // Get dimensions
-            $length = $product->getCustomAttribute('length') 
-                ? (float) $product->getCustomAttribute('length')->getValue() 
+            $length = $product->getCustomAttribute('length')
+                ? (float) $product->getCustomAttribute('length')->getValue()
                 : 0;
-            $width = $product->getCustomAttribute('width') 
-                ? (float) $product->getCustomAttribute('width')->getValue() 
+            $width = $product->getCustomAttribute('width')
+                ? (float) $product->getCustomAttribute('width')->getValue()
                 : 0;
-            $height = $product->getCustomAttribute('height') 
-                ? (float) $product->getCustomAttribute('height')->getValue() 
+            $height = $product->getCustomAttribute('height')
+                ? (float) $product->getCustomAttribute('height')->getValue()
                 : 0;
 
             // Get weight and convert to grams
@@ -248,14 +248,14 @@ class DataFormatter
     {
         try {
             // Get dimensions
-            $length = $product->getCustomAttribute('length') 
-                ? (float) $product->getCustomAttribute('length')->getValue() 
+            $length = $product->getCustomAttribute('length')
+                ? (float) $product->getCustomAttribute('length')->getValue()
                 : 0;
-            $width = $product->getCustomAttribute('width') 
-                ? (float) $product->getCustomAttribute('width')->getValue() 
+            $width = $product->getCustomAttribute('width')
+                ? (float) $product->getCustomAttribute('width')->getValue()
                 : 0;
-            $height = $product->getCustomAttribute('height') 
-                ? (float) $product->getCustomAttribute('height')->getValue() 
+            $height = $product->getCustomAttribute('height')
+                ? (float) $product->getCustomAttribute('height')->getValue()
                 : 0;
 
             // Get weight and convert to grams

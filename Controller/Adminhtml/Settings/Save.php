@@ -17,6 +17,8 @@ class Save extends Action implements HttpPostActionInterface
 
     /**
      * Execute the save action
+     *
+     * @return \Magento\Framework\Controller\Result\Redirect
      */
     public function execute()
     {
@@ -27,7 +29,8 @@ class Save extends Action implements HttpPostActionInterface
         // Here you can save the data (e.g., save to config, or to the database)
         // You might want to add your saving logic here
 
-        // Redirect back to the settings page after saving
-        $this->_redirect('nbox_shipping/settings/index');
+        // Create redirect result and redirect back to the settings page after saving
+        $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
+        return $resultRedirect->setPath('nbox_shipping/settings/index');
     }
 }

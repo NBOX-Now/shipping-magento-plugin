@@ -50,12 +50,12 @@ class StoreRepoPlugin
      *
      * Runs after a store is saved in Magento.
      *
-     * @param StoreRepository $subject
+     * @param \Magento\Store\Api\StoreRepositoryInterface $subject
      * @param mixed $result
      * @param StoreInterface $store
      * @return mixed
      */
-    public function afterSave(StoreRepository $subject, $result, StoreInterface $store)
+    public function afterSave(\Magento\Store\Api\StoreRepositoryInterface $subject, $result, StoreInterface $store)
     {
         $this->logger->debug('STORE UPDATE BABY!: ');
 
