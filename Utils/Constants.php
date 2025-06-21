@@ -5,8 +5,7 @@ class Constants
 {
     public const MODULE_NAME = 'Nbox_Shipping';
 
-    // public const NBOX_BASE_URL           = 'https://nbox.now/';
-    // public const NBOX_BASE_URL           = 'https://staging.nbox.now/';
+    public const NBOX_BASE_URL           = 'https://nbox.now/';
     public const NBOX_SUPPORT_EMAIL      = "info@nbox.qa";
     public const NBOX_RATES              = self::NBOX_BASE_URL.'api/rates';
     public const NBOX_LOGIN              = self::NBOX_BASE_URL.'api/login';
