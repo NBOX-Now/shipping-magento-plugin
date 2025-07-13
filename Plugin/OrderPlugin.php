@@ -180,6 +180,8 @@ class OrderPlugin
                 "total"           => (float) $subject->getGrandTotal(),
                 "currency"        => $subject->getOrderCurrencyCode(),
                 "shippingFee"     => (float) $subject->getShippingAmount(),
+                "paymentStatus"   => $this->getPaymentStatus($subject),
+                "paymentMethod"   => $this->getPaymentMethod($subject),
             ],
             "customer" => [
                 "firstName"       => $shippingAddress ? $shippingAddress->getFirstname() : '',
@@ -196,5 +198,54 @@ class OrderPlugin
             ),
         ];
         return $data;
+    }
+
+    /**
+     * Determine payment status based on actual order payment state
+     *
+     * @param Order $order
+     * @return string
+     */
+    private function getPaymentStatus(Order $order)
+    {
+        // Primary check: If nothing is due, order is prepaid
+        if ($order->getTotalDue() == 0) {
+            return 'prepaid';
+        }
+
+        // Secondary check: If payment has been received, it's prepaid
+        $payment = $order->getPayment();
+        if ($payment && $payment->getAmountPaid() > 0) {
+            return 'prepaid';
+        }
+
+        // Fallback: Check for known postpaid methods
+        if ($payment) {
+            $paymentMethod = strtolower($payment->getMethod());
+            $postpaidMethods = ['cashondelivery', 'cod', 'checkmo'];
+            
+            if (in_array($paymentMethod, $postpaidMethods)) {
+                return 'postpaid';
+            }
+        }
+
+        // Default to postpaid for safety (collections may be needed)
+        return 'postpaid';
+    }
+
+    /**
+     * Get payment method name for the order
+     *
+     * @param Order $order
+     * @return string
+     */
+    private function getPaymentMethod(Order $order)
+    {
+        $payment = $order->getPayment();
+        if (!$payment) {
+            return 'unknown';
+        }
+
+        return $payment->getMethod();
     }
 }
