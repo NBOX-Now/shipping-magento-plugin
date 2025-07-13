@@ -67,7 +67,7 @@ $stepsCompleted = $block->getStepsCompleted('stepsCompleted');
                                     <?= $escaper->escapeHtml(__('Login')) ?>
                                 </button>
                                 <a class="button" 
-                                    href="<?= $escaper->escapeHtml($signUp) ?>" 
+                                    href="<?= $escaper->escapeHtml($signUp . '?redirectUrl=' . urlencode($block->getUrl('*/*/*', ['_current' => true]))) ?>" 
                                     target="_blank">
                                     <?= $escaper->escapeHtml(__('Sign up')) ?>
                                 </a>         
