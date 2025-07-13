@@ -220,6 +220,7 @@ class DataFormatter
 
             return [
                 'name' => $item->getName() ?: $product->getName(),
+                'sku' => $product->getSku(),
                 'quantity' => (float) $item->getQty(),
                 'price' => (float) $item->getPrice(),
                 'grams' => $grams,
@@ -264,6 +265,7 @@ class DataFormatter
 
             return [
                 'name' => $item->getName(),
+                'sku' => $product->getSku(),
                 'quantity' => (float) $item->getQtyOrdered(),
                 'price' => (float) $item->getPrice(),
                 'grams' => $grams,
