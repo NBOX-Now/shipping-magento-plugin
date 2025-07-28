@@ -19,6 +19,7 @@ use Magento\Catalog\Model\Product\Type;
 use Nbox\Shipping\Helper\ProductSource;
 use Nbox\Shipping\Helper\NboxApi;
 use Nbox\Shipping\Helper\ConfigHelper;
+use Nbox\Shipping\Helper\ProductTypeHelper;
 use Nbox\Shipping\Utils\Converter;
 use Nbox\Shipping\Service\DataFormatter;
 
@@ -78,6 +79,11 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
     protected $dataFormatter;
 
     /**
+     * @var ProductTypeHelper
+     */
+    protected $productTypeHelper;
+
+    /**
      * @var string
      */
     protected $_code = 'nboxshipping';
@@ -97,6 +103,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
      * @param ProductSource $productSource
      * @param Converter $converter
      * @param DataFormatter $dataFormatter
+     * @param ProductTypeHelper $productTypeHelper
      * @param array $data
      */
     public function __construct(
@@ -112,6 +119,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
         ProductSource $productSource,
         Converter $converter, // Added the Converter dependency
         DataFormatter $dataFormatter,
+        ProductTypeHelper $productTypeHelper,
         array $data = []
     ) {
         $this->rateResultFactory = $rateResultFactory;
@@ -123,6 +131,7 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
         $this->productSource = $productSource;
         $this->converter = $converter; // Set the converter instance
         $this->dataFormatter = $dataFormatter;
+        $this->productTypeHelper = $productTypeHelper;
         parent::__construct($scopeConfig, $rateErrorFactory, $logger, $data);
     }
 
@@ -156,10 +165,19 @@ class Nboxshipping extends AbstractCarrier implements CarrierInterface
 
         $items = $request->getAllItems();
         
+        // Filter out non-shippable items (virtual, downloadable, grouped products)
+        $shippableItems = $this->productTypeHelper->filterShippableQuoteItems($items);
+        
+        // Skip shipping calculation if no shippable items found
+        if (empty($shippableItems)) {
+            $this->_logger->debug("NboxShipping: No shippable items found in quote.");
+            return false;
+        }
+        
         // Use DataFormatter service to format addresses and products
         $origin = $this->dataFormatter->formatOriginAddress();
         $destination = $this->dataFormatter->formatDestinationFromRateRequest($request);
-        $products = $this->dataFormatter->formatProductsFromQuoteItems($items);
+        $products = $this->dataFormatter->formatProductsFromQuoteItems($shippableItems);
         
         // Calculate totals from products
         $totalVolume = 0;

@@ -28,6 +28,22 @@ xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xs
             <argument name="curl" xsi:type="object">Magento\Framework\HTTP\Client\Curl</argument>
             <argument name="productSource" xsi:type="object">Nbox\Shipping\Helper\ProductSource</argument>
             <argument name="converter" xsi:type="object">Nbox\Shipping\Utils\Converter</argument>
+            <argument name="dataFormatter" xsi:type="object">Nbox\Shipping\Service\DataFormatter</argument>
+            <argument name="productTypeHelper" xsi:type="object">Nbox\Shipping\Helper\ProductTypeHelper</argument>
+        </arguments>
+    </type>
+
+    <!-- Define ProductHelper Constructor Dependencies -->
+    <type name="Nbox\Shipping\Helper\ProductHelper">
+        <arguments>
+            <argument name="productTypeHelper" xsi:type="object">Nbox\Shipping\Helper\ProductTypeHelper</argument>
+        </arguments>
+    </type>
+
+    <!-- Define DataFormatter Constructor Dependencies -->
+    <type name="Nbox\Shipping\Service\DataFormatter">
+        <arguments>
+            <argument name="productTypeHelper" xsi:type="object">Nbox\Shipping\Helper\ProductTypeHelper</argument>
         </arguments>
     </type>
 </config>

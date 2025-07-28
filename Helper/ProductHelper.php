@@ -8,6 +8,7 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Backend\Model\UrlInterface;
+use Nbox\Shipping\Helper\ProductTypeHelper;
 
 /**
  * ProductHelper assists in retrieving products with missing or zero dimensions/weight.
@@ -35,6 +36,11 @@ class ProductHelper extends AbstractHelper
     protected $backendUrl;
 
     /**
+     * @var ProductTypeHelper
+     */
+    protected $productTypeHelper;
+
+    /**
      * ProductHelper constructor.
      *
      * @param Context $context
@@ -42,40 +48,45 @@ class ProductHelper extends AbstractHelper
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param FilterBuilder $filterBuilder
      * @param UrlInterface $backendUrl
+     * @param ProductTypeHelper $productTypeHelper
      */
     public function __construct(
         Context $context,
         ProductRepositoryInterface $productRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         FilterBuilder $filterBuilder,
-        UrlInterface $backendUrl
+        UrlInterface $backendUrl,
+        ProductTypeHelper $productTypeHelper
     ) {
         parent::__construct($context);
         $this->productRepository = $productRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->filterBuilder = $filterBuilder;
         $this->backendUrl = $backendUrl;
+        $this->productTypeHelper = $productTypeHelper;
     }
 
    /**
-    * Get products that need attention (active, non-virtual, with null or 0 weight, length, width, or height)
+    * Get products that need attention (active, shippable products with null or 0 weight, length, width, or height)
     *
     * @return array
     * @throws LocalizedException
     */
     public function getProducts()
     {
-        // Create filters for active products and non-virtual products
+        // Create filters for active products only
         $statusFilter = $this->filterBuilder
             ->setField('status')
             ->setValue(1)
             ->setConditionType('eq')
             ->create();
 
+        // Filter out all non-shippable product types (virtual, downloadable, grouped)
+        $nonShippableTypes = $this->productTypeHelper->getNonShippableProductTypes();
         $typeFilter = $this->filterBuilder
             ->setField('type_id')
-            ->setValue('virtual')
-            ->setConditionType('neq')
+            ->setValue($nonShippableTypes)
+            ->setConditionType('nin') // Not in array
             ->create();
 
         // Create OR conditions for weight, length, width, and height being NULL or 0
@@ -105,7 +116,17 @@ class ProductHelper extends AbstractHelper
 
         $searchCriteria = $this->searchCriteriaBuilder->create();
 
-        // Fetch products
-        return $this->productRepository->getList($searchCriteria)->getItems();
+        // Fetch products and apply additional runtime filtering
+        $products = $this->productRepository->getList($searchCriteria)->getItems();
+        
+        // Additional runtime filtering using ProductTypeHelper to handle edge cases
+        $filteredProducts = [];
+        foreach ($products as $product) {
+            if ($this->productTypeHelper->isShippableProduct($product)) {
+                $filteredProducts[] = $product;
+            }
+        }
+
+        return $filteredProducts;
     }
 }

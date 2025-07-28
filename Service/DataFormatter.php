@@ -11,6 +11,7 @@ use Magento\Sales\Model\Order\Address as OrderAddress;
 use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
 use Nbox\Shipping\Utils\Converter;
+use Nbox\Shipping\Helper\ProductTypeHelper;
 
 /**
  * Service class for formatting address and product data for Nbox API requests
@@ -43,6 +44,11 @@ class DataFormatter
     protected $logger;
 
     /**
+     * @var ProductTypeHelper
+     */
+    protected $productTypeHelper;
+
+    /**
      * DataFormatter constructor.
      *
      * @param ScopeConfigInterface $scopeConfig
@@ -50,19 +56,22 @@ class DataFormatter
      * @param ProductRepositoryInterface $productRepository
      * @param Converter $converter
      * @param LoggerInterface $logger
+     * @param ProductTypeHelper $productTypeHelper
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         StoreManagerInterface $storeManager,
         ProductRepositoryInterface $productRepository,
         Converter $converter,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ProductTypeHelper $productTypeHelper
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->storeManager = $storeManager;
         $this->productRepository = $productRepository;
         $this->converter = $converter;
         $this->logger = $logger;
+        $this->productTypeHelper = $productTypeHelper;
     }
 
     /**
@@ -203,6 +212,15 @@ class DataFormatter
     protected function formatSingleProductFromQuoteItem($item, $product, string $currency, string $weightUnit): ?array
     {
         try {
+            // Skip non-shippable products (virtual, downloadable, grouped)
+            if (!$this->productTypeHelper->isShippableProduct($product)) {
+                $this->logger->debug(
+                    "Skipping non-shippable product in quote formatting: " . $product->getSku() 
+                    . " (type: " . $product->getTypeId() . ")"
+                );
+                return null;
+            }
+
             // Get dimensions
             $length = $product->getCustomAttribute('length')
                 ? (float) $product->getCustomAttribute('length')->getValue()
@@ -248,6 +266,15 @@ class DataFormatter
     protected function formatSingleProductFromOrderItem($item, $product, string $currency, string $weightUnit): ?array
     {
         try {
+            // Skip non-shippable products (virtual, downloadable, grouped)
+            if (!$this->productTypeHelper->isShippableProduct($product)) {
+                $this->logger->debug(
+                    "Skipping non-shippable product in order formatting: " . $product->getSku() 
+                    . " (type: " . $product->getTypeId() . ")"
+                );
+                return null;
+            }
+
             // Get dimensions
             $length = $product->getCustomAttribute('length')
                 ? (float) $product->getCustomAttribute('length')->getValue()
